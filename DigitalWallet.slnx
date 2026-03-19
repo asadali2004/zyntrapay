@@ -1,4 +1,16 @@
 <Solution>
+  <Folder Name="/Database/">
+    <File Path="01_AuthDB.sql" />
+    <File Path="02_UserDB.sql" />
+    <File Path="03_WalletDB.sql" />
+    <File Path="04_RewardsDB.sql" />
+    <File Path="05_NotificationDB.sql" />
+    <File Path="06_AdminDB.sql" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="README.md" />
+  </Folder>
   <Project Path="AdminService/AdminService.csproj" />
   <Project Path="ApiGateway/ApiGateway.csproj" />
   <Project Path="AuthService/AuthService.csproj" />

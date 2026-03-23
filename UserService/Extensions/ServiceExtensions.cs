@@ -15,7 +15,7 @@ public static class ServiceExtensions
         this IServiceCollection services, IConfiguration config)
     {
         services.AddDbContext<UserDbContext>(options =>
-            options.UseSqlServer(config.GetConnectionString("AuthDB")));
+            options.UseSqlServer(config.GetConnectionString("UserDB")));
         return services;
     }
 

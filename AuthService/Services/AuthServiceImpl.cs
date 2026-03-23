@@ -22,16 +22,24 @@ public class AuthServiceImpl : IAuthService
     private readonly IAuthRepository _repo;
     private readonly JwtSettings _jwt;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthServiceImpl> _logger;
 
-    public AuthServiceImpl(IAuthRepository repo, IOptions<JwtSettings> jwt, IConfiguration configuration)
+    public AuthServiceImpl(
+        IAuthRepository repo,
+        IOptions<JwtSettings> jwt,
+        IConfiguration configuration,
+        ILogger<AuthServiceImpl> logger)
     {
         _repo = repo;
         _jwt = jwt.Value;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<(bool Success, string Message)> RegisterAsync(RegisterRequestDto dto)
     {
+        _logger.LogInformation("Register attempt for email: {Email}", dto.Email); 
+
         if (await _repo.EmailExistsAsync(dto.Email))
             return (false, "Email already registered.");
 
@@ -51,6 +59,7 @@ public class AuthServiceImpl : IAuthService
         await _repo.AddUserAsync(user);
         await _repo.SaveChangesAsync();
 
+        _logger.LogInformation("User registered successfully: {Email}", dto.Email); 
         return (true, "Registration successful.");
     }
 
@@ -84,16 +93,22 @@ public class AuthServiceImpl : IAuthService
     }
     public async Task<(bool Success, AuthResponseDto? Data, string Message)> LoginAsync(LoginRequestDto dto)
     {
+        _logger.LogInformation("Login attempt for email: {Email}", dto.Email); 
+
         var user = await _repo.GetByEmailAsync(dto.Email);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        {
+            _logger.LogWarning("Failed login attempt for email: {Email}", dto.Email); 
             return (false, null, "Invalid email or password.");
+        }
 
         if (!user.IsActive)
             return (false, null, "Account is deactivated.");
 
         var token = GenerateToken(user);
 
+        _logger.LogInformation("Login successful for email: {Email}", dto.Email); 
         return (true, new AuthResponseDto
         {
             Token = token,

@@ -7,14 +7,18 @@ namespace UserService.Services;
 public class UserServiceImpl : IUserService
 {
     private readonly IUserRepository _repo;
+    private readonly ILogger<UserServiceImpl> _logger;
 
-    public UserServiceImpl(IUserRepository repo)
+    public UserServiceImpl(IUserRepository repo, ILogger<UserServiceImpl> logger)
     {
         _repo = repo;
+        _logger = logger;
     }
 
     public async Task<(bool Success, string Message)> CreateProfileAsync(CreateProfileDto dto)
     {
+        _logger.LogInformation("Creating profile for AuthUserId: {Id}", dto.AuthUserId); 
+
         if (await _repo.ProfileExistsAsync(dto.AuthUserId))
             return (false, "Profile already exists for this user.");
 
@@ -33,6 +37,7 @@ public class UserServiceImpl : IUserService
         await _repo.AddProfileAsync(profile);
         await _repo.SaveChangesAsync();
 
+        _logger.LogInformation("Profile created for AuthUserId: {Id}", dto.AuthUserId);
         return (true, "Profile created successfully.");
     }
 
@@ -59,6 +64,8 @@ public class UserServiceImpl : IUserService
 
     public async Task<(bool Success, string Message)> SubmitKycAsync(SubmitKycDto dto)
     {
+        _logger.LogInformation("KYC submission attempt for AuthUserId: {Id}", dto.AuthUserId); 
+
         if (await _repo.KycExistsAsync(dto.AuthUserId))
             return (false, "KYC already submitted for this user.");
 
@@ -74,6 +81,7 @@ public class UserServiceImpl : IUserService
         await _repo.AddKycAsync(kyc);
         await _repo.SaveChangesAsync();
 
+        _logger.LogInformation("KYC submitted for AuthUserId: {Id}", dto.AuthUserId);
         return (true, "KYC submitted successfully. Awaiting review.");
     }
 

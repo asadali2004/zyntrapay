@@ -1,11 +1,11 @@
 <Solution>
   <Folder Name="/Database/">
-    <File Path="01_AuthDB.sql" />
-    <File Path="02_UserDB.sql" />
-    <File Path="03_WalletDB.sql" />
-    <File Path="04_RewardsDB.sql" />
-    <File Path="05_NotificationDB.sql" />
-    <File Path="06_AdminDB.sql" />
+    <File Path="Database/01_AuthDB.sql" />
+    <File Path="Database/02_UserDB.sql" />
+    <File Path="Database/03_WalletDB.sql" />
+    <File Path="Database/04_RewardsDB.sql" />
+    <File Path="Database/05_NotificationDB.sql" />
+    <File Path="Database/06_AdminDB.sql" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />

@@ -145,13 +145,13 @@ All architecture and service diagrams are in the `Diagrams/` folder.
 
 ## Project Status
 
-| Day   | Status     | What Was Built                                              |
-|-------|------------|-------------------------------------------------------------|
-| Day 1 | ✅ Done    | AuthService, Ocelot API Gateway, JWT, Swagger, port setup  |
-| Day 2 | 🔄 In Progress | UserService (profile + KYC), WalletService              |
-| Day 3 | ⏳ Pending | RewardsService, RabbitMQ event-driven communication        |
-| Day 4 | ⏳ Pending | AdminService (KYC approval, dashboard), Angular UI         |
-| Day 5 | ⏳ Pending | Integration, testing, polish, viva prep                    |
+| Day   | Status          | What Was Built                                              |
+|-------|-----------------|-------------------------------------------------------------|
+| Day 1 | ✅ Done         | AuthService, Ocelot API Gateway, JWT, Swagger, port setup  |
+| Day 2 | ✅ Done         | UserService (profile + KYC), WalletService (ledger-first)  |
+| Day 3 | 🔄 In Progress  | RewardsService, NotificationService, RabbitMQ events       |
+| Day 4 | ⏳ Pending      | AdminService, Angular UI                                    |
+| Day 5 | ⏳ Pending      | Integration, testing, polish, viva prep                     |
 
 ## Folder Structure
 ```

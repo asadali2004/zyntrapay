@@ -1,6 +1,7 @@
-# Digital Wallet & Rewards System
+# ZyntraPay — Digital Wallet & Rewards System
 
-A microservices-based Digital Wallet and Loyalty/Rewards platform built as a final evaluation project.
+A production-grade microservices-based Digital Wallet and Loyalty/Rewards 
+platform. Built with .NET 8, Angular, SQL Server, RabbitMQ, and Ocelot API Gateway.
 
 ## Tech Stack
 

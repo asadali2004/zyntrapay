@@ -1,5 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
 using AuthService.Models;
 using Microsoft.EntityFrameworkCore;
 

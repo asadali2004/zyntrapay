@@ -1,162 +1,168 @@
 # ZyntraPay — Digital Wallet & Rewards System
 
-A production-grade microservices-based Digital Wallet and Loyalty/Rewards 
-platform. Built with .NET 8, Angular, SQL Server, RabbitMQ, and Ocelot API Gateway.
+A microservices-based digital wallet and loyalty platform built with `.NET 8`, `SQL Server`, `RabbitMQ`, and `Ocelot API Gateway`.
 
 ## Tech Stack
 
-- **Backend:** .NET 8 Web API (Microservices)
-- **Frontend:** Angular
-- **Database:** SQL Server (EF Core DB First)
-- **Auth:** JWT Bearer Tokens
-- **Messaging:** RabbitMQ
-- **Gateway:** Ocelot API Gateway
+- Backend: `.NET 8 Web API` (Microservices)
+- Database: `SQL Server` + `EF Core`
+- Auth: `JWT Bearer Tokens`
+- Messaging: `RabbitMQ`
+- Gateway: `Ocelot`
+- Frontend: `Angular` (planned/in progress)
 
 ## Services & Ports
 
-| Service             | Port |
-|---------------------|------|
-| API Gateway         | 5001 |
-| AuthService         | 5003 |
-| UserService         | 5005 |
-| WalletService       | 5007 |
-| RewardsService      | 5009 |
+| Service | Port |
+|---|---|
+| API Gateway | 5001 |
+| AuthService | 5003 |
+| UserService | 5005 |
+| WalletService | 5007 |
+| RewardsService | 5009 |
 | NotificationService | 5011 |
-| AdminService        | 5013 |
-| Angular Frontend    | 4200 |
+| AdminService | 5013 |
 
-## Architecture
-```
-Angular (4200)
-     │
-     ▼
-API Gateway (5001)
-     │
-     ├── /gateway/auth/*         → AuthService        (5003)
-     ├── /gateway/user/*         → UserService        (5005)
-     ├── /gateway/wallet/*       → WalletService      (5007)
-     ├── /gateway/rewards/*      → RewardsService     (5009)
-     ├── /gateway/notification/* → NotificationService(5011)
-     └── /gateway/admin/*        → AdminService       (5013)
+## Architecture Overview
 
-Event Flow (RabbitMQ):
-  WalletService → WalletTopUpCompleted   → RewardsService, NotificationService
-  RewardsService → PointsAwarded        → NotificationService
-  AdminService   → KycStatusChanged     → NotificationService
+`Angular -> API Gateway -> Microservices`
 
-Admin → UserService (HTTP) for KYC approval
-```
+Gateway routes:
 
-## Getting Started
+- `/gateway/auth/*` -> `AuthService`
+- `/gateway/user/*` -> `UserService`
+- `/gateway/wallet/*` -> `WalletService`
+- `/gateway/rewards/*` -> `RewardsService`
+- `/gateway/notification/*` -> `NotificationService`
+- `/gateway/admin/*` -> `AdminService`
 
-### Prerequisites
-- .NET 8 SDK
-- SQL Server (SSMS)
-- RabbitMQ
-- Node.js (for Angular)
+## Event Flow (RabbitMQ)
 
-### Database Setup
-Run SQL scripts in order from the `Database/` folder:
+Implemented:
 
-| Script               | Database        |
-|----------------------|-----------------|
-| 01_AuthDB.sql        | AuthDB          |
-| 02_UserDB.sql        | UserDB          |
-| 03_WalletDB.sql      | WalletDB        |
-| 04_RewardsDB.sql     | RewardsDB       |
-| 05_NotificationDB.sql| NotificationDB  |
-| 06_AdminDB.sql       | AdminDB         |
+- `WalletService` publishes `WalletTopUpCompletedEvent`
+  - consumed by `RewardsService` (points awarding)
+  - consumed by `NotificationService` (top-up notification)
+- `WalletService` publishes `WalletTransferCompletedEvent`
+  - consumed by `NotificationService` (sender/receiver notification)
 
-### Run the Project
-1. Run all SQL scripts in SSMS in order
-2. Update connection strings in each service's `appsettings.json`
-3. In Visual Studio → right-click Solution → Properties → Multiple Startup Projects → set all services to Start
-4. Press F5 — all services start together
+Shared contracts are in `Shared.Events/`.
 
-### Admin Setup
-To register an admin user, use the secret key defined in `AuthService/appsettings.json`:
-```
-POST /gateway/auth/register-admin
+## Database Setup
+
+Run SQL scripts from `Database/` in order:
+
+1. `01_AuthDB.sql`
+2. `02_UserDB.sql`
+3. `03_WalletDB.sql`
+4. `04_RewardsDB.sql`
+5. `05_NotificationDB.sql`
+6. `06_AdminDB.sql`
+
+> Note: Services use EF Core migrations and auto-migrate on startup. SQL scripts are schema references.
+
+## Run the Project
+
+1. Update connection strings in each service `appsettings.json`
+2. Ensure RabbitMQ is running
+3. In Visual Studio, set multiple startup projects for all services
+4. Start debugging (`F5`)
+
+## Admin Registration
+
+Use `AuthService` admin secret from `AuthService/appsettings.json`:
+
+`POST /gateway/auth/register-admin`
+
+```json
 {
   "email": "admin@digitalwallet.com",
   "phoneNumber": "9000000001",
   "password": "Admin@123",
-  "adminSecretKey": "AdminSecret@2024"
+  "adminSecretKey": "AdminSecret@2026"
 }
 ```
 
-### API Documentation
-Each service exposes Swagger UI at `/swagger`
+## Swagger URLs
 
-| Service             | Swagger URL                       |
-|---------------------|-----------------------------------|
-| AuthService         | https://localhost:5003/swagger    |
-| UserService         | https://localhost:5005/swagger    |
-| WalletService       | https://localhost:5007/swagger    |
-| RewardsService      | https://localhost:5009/swagger    |
-| NotificationService | https://localhost:5011/swagger    |
-| AdminService        | https://localhost:5013/swagger    |
+- `https://localhost:5003/swagger` (`AuthService`)
+- `https://localhost:5005/swagger` (`UserService`)
+- `https://localhost:5007/swagger` (`WalletService`)
+- `https://localhost:5009/swagger` (`RewardsService`)
+- `https://localhost:5011/swagger` (`NotificationService`)
+- `https://localhost:5013/swagger` (`AdminService`)
 
-## API Reference
+## API Summary
 
-### AuthService (5003)
-| Method | Endpoint                        | Access        | Description              |
-|--------|---------------------------------|---------------|--------------------------|
-| POST   | /gateway/auth/register          | Public        | Register new user        |
-| POST   | /gateway/auth/register-admin    | Secret Key    | Register admin user      |
-| POST   | /gateway/auth/login             | Public        | Login, returns JWT token |
+### AuthService
 
-### UserService (5005)
-| Method | Endpoint                        | Access        | Description              |
-|--------|---------------------------------|---------------|--------------------------|
-| POST   | /gateway/user/profile           | User JWT      | Create user profile      |
-| GET    | /gateway/user/profile           | User JWT      | Get own profile          |
-| POST   | /gateway/user/kyc               | User JWT      | Submit KYC documents     |
-| GET    | /gateway/user/kyc               | User JWT      | Get KYC status           |
+- `POST /gateway/auth/register`
+- `POST /gateway/auth/register-admin`
+- `POST /gateway/auth/login`
+- `GET /gateway/auth/admin/users` (Admin)
+- `PUT /gateway/auth/admin/users/{id}/toggle` (Admin)
 
-## Key Design Decisions
+### UserService
 
-**Why separate DB per service?**
-Each service owns its data. If WalletDB goes down, UserService still works. Loose coupling at the data layer.
+- `POST /gateway/user/profile`
+- `GET /gateway/user/profile`
+- `POST /gateway/user/kyc`
+- `GET /gateway/user/kyc`
+- `GET /gateway/user/admin/kyc/pending` (Admin)
+- `PUT /gateway/user/admin/kyc/{kycId}/review` (Admin)
 
-**Why JWT over sessions?**
-Stateless — every service validates the token independently without calling AuthService. Scales naturally.
+### WalletService
 
-**Why AuthUserId instead of FK across DBs?**
-Cross-database foreign keys are not possible in microservices. The relationship is enforced at the application level.
+- `POST /gateway/wallet/create`
+- `GET /gateway/wallet/balance`
+- `POST /gateway/wallet/topup`
+- `POST /gateway/wallet/transfer`
+- `GET /gateway/wallet/transactions`
+- `GET /gateway/wallet/transactions/{id}`
 
-**Why RabbitMQ instead of direct HTTP between services?**
-Async and decoupled. WalletService does not wait for RewardsService to finish. More resilient to failures.
+### RewardsService
 
-**Why Repository Pattern?**
-Separates data access from business logic. Controllers stay clean, services stay testable.
+- `GET /gateway/rewards/summary`
+- `GET /gateway/rewards/catalog`
+- `POST /gateway/rewards/redeem`
+- `GET /gateway/rewards/history`
 
-**Why manual DTOs over AutoMapper?**
-Every mapping is explicit and traceable. No magic. Easy to explain and debug.
+### NotificationService
 
-## Diagrams
+- `GET /gateway/notification`
+- `PUT /gateway/notification/{id}/read`
 
-All architecture and service diagrams are in the `Diagrams/` folder.
+### AdminService
 
-| Diagram                              | Description                        |
-|--------------------------------------|------------------------------------|
-| 00_Overall_Architecture_Diagram      | Full system overview               |
-| 01_AuthService_Design                | AuthService layers and AuthDB      |
-| 02_UserService_Design                | UserService layers and UserDB      |
+- `GET /gateway/admin/kyc/pending`
+- `PUT /gateway/admin/kyc/{kycId}/review`
+- `GET /gateway/admin/users`
+- `PUT /gateway/admin/users/{userId}/toggle`
+- `GET /gateway/admin/dashboard`
 
-## Project Status
+## Current Project Status
 
-| Day   | Status          | What Was Built                                              |
-|-------|-----------------|-------------------------------------------------------------|
-| Day 1 | ✅ Done         | AuthService, Ocelot API Gateway, JWT, Swagger, port setup  |
-| Day 2 | ✅ Done         | UserService (profile + KYC), WalletService (ledger-first)  |
-| Day 3 | 🔄 In Progress  | RewardsService, NotificationService, RabbitMQ events       |
-| Day 4 | ⏳ Pending      | AdminService, Angular UI                                    |
-| Day 5 | ⏳ Pending      | Integration, testing, polish, viva prep                     |
+Backend status:
+
+- `AuthService` ✅
+- `UserService` ✅
+- `WalletService` ✅
+- `RewardsService` ✅
+- `NotificationService` ✅
+- `AdminService` ✅
+- `API Gateway` ✅
+- `Shared.Events` ✅
+
+Remaining major work:
+
+- Angular UI integration
+- End-to-end/integration test coverage
+- Production hardening and deployment pipeline
 
 ## Folder Structure
-```
-digital-wallet-dotnet/
+
+```text
+ZyntraPay/
 ├── AdminService/
 ├── ApiGateway/
 ├── AuthService/
@@ -165,9 +171,6 @@ digital-wallet-dotnet/
 ├── Shared.Events/
 ├── UserService/
 ├── WalletService/
-├── Database/          ← SQL scripts numbered in execution order
-├── Diagrams/          ← Excalidraw design files + PNG exports
-├── .gitignore
-├── README.md
-└── DigitalWallet.sln
-```
+├── Database/
+├── Diagrams/
+└── README.md

@@ -1,21 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuthService.Models;
 
-public partial class User
+[Table("Users")]
+public class User
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    public string Email { get; set; } = null!;
+    [Required]
+    [MaxLength(150)]
+    public string Email { get; set; } = string.Empty;
 
-    public string PhoneNumber { get; set; } = null!;
+    [Required]
+    [MaxLength(20)]
+    public string PhoneNumber { get; set; } = string.Empty;
 
-    public string PasswordHash { get; set; } = null!;
+    [Required]
+    [MaxLength(300)]
+    public string PasswordHash { get; set; } = string.Empty;
 
-    public string Role { get; set; } = null!;
+    [Required]
+    [MaxLength(20)]
+    public string Role { get; set; } = "User";
 
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

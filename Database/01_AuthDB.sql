@@ -20,3 +20,23 @@ CREATE TABLE Users (
     CreatedAt    DATETIME      NOT NULL DEFAULT GETDATE()
 );
 GO
+
+
+
+-- ============================================
+-- Database: AuthDB
+-- Service:  AuthService (Port 5003)
+-- Approach: Code First (EF Core Migrations)
+-- Note:     This script is for reference only.
+--           Database is created automatically
+--           via EF Core migrations on startup.
+-- ============================================
+
+-- Table: Users
+-- Id            INT           PK IDENTITY
+-- Email         NVARCHAR(150) UNIQUE NOT NULL
+-- PhoneNumber   NVARCHAR(20)  UNIQUE NOT NULL
+-- PasswordHash  NVARCHAR(300) NOT NULL
+-- Role          NVARCHAR(20)  NOT NULL DEFAULT 'User'
+-- IsActive      BIT           NOT NULL DEFAULT 1
+-- CreatedAt     DATETIME      NOT NULL DEFAULT GETDATE()

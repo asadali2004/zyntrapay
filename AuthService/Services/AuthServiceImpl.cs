@@ -139,4 +139,32 @@ public class AuthServiceImpl : IAuthService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public async Task<List<UserSummaryDto>> GetAllUsersAsync()
+    {
+        var users = await _repo.GetAllUsersAsync();
+        return users.Select(u => new UserSummaryDto
+        {
+            Id = u.Id,
+            Email = u.Email,
+            PhoneNumber = u.PhoneNumber,
+            Role = u.Role,
+            IsActive = u.IsActive,
+            CreatedAt = u.CreatedAt
+        }).ToList();
+    }
+
+    public async Task<(bool Success, string Message)> ToggleUserStatusAsync(int userId)
+    {
+        var user = await _repo.GetByIdAsync(userId);
+        if (user == null)
+            return (false, "User not found.");
+
+        user.IsActive = !user.IsActive;
+        await _repo.SaveChangesAsync();
+
+        var status = user.IsActive ? "activated" : "deactivated";
+        _logger.LogInformation("User {Id} {Status}", userId, status);
+        return (true, $"User {status} successfully.");
+    }
 }

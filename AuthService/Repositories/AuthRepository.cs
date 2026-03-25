@@ -27,4 +27,10 @@ public class AuthRepository : IAuthRepository
 
     public async Task SaveChangesAsync()
         => await _context.SaveChangesAsync();
+
+    public async Task<List<User>> GetAllUsersAsync()
+    => await _context.Users.OrderBy(u => u.Id).ToListAsync();
+
+    public async Task<User?> GetByIdAsync(int id)
+        => await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
 }

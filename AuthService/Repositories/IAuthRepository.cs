@@ -9,4 +9,6 @@ public interface IAuthRepository
     Task<bool> PhoneExistsAsync(string phone);
     Task AddUserAsync(User user);
     Task SaveChangesAsync();
+    Task<List<User>> GetAllUsersAsync();
+    Task<User?> GetByIdAsync(int id);
 }

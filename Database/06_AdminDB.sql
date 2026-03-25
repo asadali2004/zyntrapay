@@ -1,0 +1,22 @@
+-- ============================================
+-- Database: AdminDB
+-- Service:  AdminService (Port 5013)
+-- Approach: Code First (EF Core Migrations)
+-- Note:     This script is for reference only.
+--           Database is created automatically
+--           via EF Core migrations on startup.
+-- ============================================
+
+-- Table: AdminActions
+-- --------------------------------------------
+-- Id             INT            PK IDENTITY
+-- AdminAuthUserId INT           NOT NULL (admin user id from AuthService)
+-- ActionType     NVARCHAR(50)   NOT NULL
+-- TargetUserId   INT            NOT NULL
+-- Remarks        NVARCHAR(300)  NULL
+-- PerformedAt    DATETIME       NOT NULL DEFAULT GETDATE()
+
+-- Indexes
+-- --------------------------------------------
+-- IX_AdminActions_AdminAuthUserId (AdminAuthUserId)
+-- IX_AdminActions_TargetUserId (TargetUserId)

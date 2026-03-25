@@ -1,31 +1,26 @@
 -- ============================================
 -- Database: WalletDB
 -- Service:  WalletService (Port 5007)
--- Purpose:  Wallet balance and ledger entries
+-- Approach: Code First (EF Core Migrations)
+-- Note:     This script is for reference only.
+--           Database is created automatically
+--           via EF Core migrations on startup.
 -- ============================================
 
-CREATE DATABASE WalletDB;
-GO
+-- Table: Wallets
+-- --------------------------------------------
+-- Id          INT             PK IDENTITY
+-- AuthUserId  INT             UNIQUE NOT NULL (FK → AuthDB.Users.Id)
+-- Balance     DECIMAL(18,2)   NOT NULL DEFAULT 0
+-- IsActive    BIT             NOT NULL DEFAULT 1
+-- CreatedAt   DATETIME        NOT NULL DEFAULT GETDATE()
 
-USE WalletDB;
-GO
-
-CREATE TABLE Wallets (
-    Id          INT             PRIMARY KEY IDENTITY(1,1),
-    AuthUserId  INT             NOT NULL UNIQUE,
-    Balance     DECIMAL(18,2)   NOT NULL DEFAULT 0,
-    IsActive    BIT             NOT NULL DEFAULT 1,
-    CreatedAt   DATETIME        NOT NULL DEFAULT GETDATE()
-);
-GO
-
-CREATE TABLE LedgerEntries (
-    Id          INT             PRIMARY KEY IDENTITY(1,1),
-    WalletId    INT             NOT NULL REFERENCES Wallets(Id),
-    Type        NVARCHAR(10)    NOT NULL,         -- CREDIT / DEBIT
-    Amount      DECIMAL(18,2)   NOT NULL,
-    Description NVARCHAR(200)   NOT NULL,
-    ReferenceId NVARCHAR(100)   NULL,             -- e.g. transfer target userId
-    CreatedAt   DATETIME        NOT NULL DEFAULT GETDATE()
-);
-GO
+-- Table: LedgerEntries
+-- --------------------------------------------
+-- Id          INT             PK IDENTITY
+-- WalletId    INT             NOT NULL (FK → Wallets.Id)
+-- Type        NVARCHAR(10)    NOT NULL        -- CREDIT / DEBIT
+-- Amount      DECIMAL(18,2)   NOT NULL
+-- Description NVARCHAR(200)   NOT NULL
+-- ReferenceId NVARCHAR(100)   NULL
+-- CreatedAt   DATETIME        NOT NULL DEFAULT GETDATE()

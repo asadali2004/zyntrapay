@@ -1,0 +1,21 @@
+-- ============================================
+-- Database: NotificationDB
+-- Service:  NotificationService (Port 5011)
+-- Approach: Code First (EF Core Migrations)
+-- Note:     This script is for reference only.
+--           Database is created automatically
+--           via EF Core migrations on startup.
+-- ============================================
+
+-- Table: Notifications
+-- --------------------------------------------
+-- Id          INT            PK IDENTITY
+-- AuthUserId  INT            NOT NULL (mapped to Auth user id)
+-- Title       NVARCHAR(150)  NOT NULL
+-- Message     NVARCHAR(500)  NOT NULL
+-- IsRead      BIT            NOT NULL DEFAULT 0
+-- CreatedAt   DATETIME       NOT NULL DEFAULT GETDATE()
+
+-- Indexes
+-- --------------------------------------------
+-- IX_Notifications_AuthUserId (AuthUserId)

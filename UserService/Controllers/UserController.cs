@@ -57,4 +57,23 @@ public class UserController : ControllerBase
         if (!success) return NotFound(new { message });
         return Ok(data);
     }
+
+    // Admin-only endpoints called by AdminService internally
+    [HttpGet("admin/kyc/pending")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetPendingKycs()
+    {
+        var (success, data, message) = await _userService.GetPendingKycsAsync();
+        if (!success) return BadRequest(new { message });
+        return Ok(data);
+    }
+
+    [HttpPut("admin/kyc/{kycId}/review")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ReviewKyc(int kycId, [FromBody] ReviewKycDto dto)
+    {
+        var (success, message) = await _userService.ReviewKycAsync(kycId, dto);
+        if (!success) return BadRequest(new { message });
+        return Ok(new { message });
+    }
 }

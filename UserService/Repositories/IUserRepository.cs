@@ -13,4 +13,7 @@ public interface IUserRepository
     Task AddKycAsync(KycSubmission kyc);
 
     Task SaveChangesAsync();
+
+    Task<KycSubmission?> GetKycByIdAsync(int kycId);
+    Task<List<KycSubmission>> GetPendingKycsAsync();
 }

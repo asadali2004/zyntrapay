@@ -33,4 +33,12 @@ public class UserRepository : IUserRepository
 
     public async Task SaveChangesAsync()
         => await _context.SaveChangesAsync();
+
+    public async Task<KycSubmission?> GetKycByIdAsync(int kycId)
+    => await _context.KycSubmissions.FirstOrDefaultAsync(k => k.Id == kycId);
+
+    public async Task<List<KycSubmission>> GetPendingKycsAsync()
+        => await _context.KycSubmissions
+            .Where(k => k.Status == "Pending")
+            .ToListAsync();
 }

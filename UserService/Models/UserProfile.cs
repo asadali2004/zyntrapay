@@ -1,25 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserService.Models;
 
-public partial class UserProfile
+[Table("UserProfiles")]
+public class UserProfile
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
+    [Required]
     public int AuthUserId { get; set; }
 
-    public string FullName { get; set; } = null!;
+    [Required]
+    [MaxLength(150)]
+    public string FullName { get; set; } = string.Empty;
 
-    public DateOnly DateOfBirth { get; set; }
+    [Required]
+    public DateTime DateOfBirth { get; set; }
 
-    public string Address { get; set; } = null!;
+    [Required]
+    [MaxLength(300)]
+    public string Address { get; set; } = string.Empty;
 
-    public string City { get; set; } = null!;
+    [Required]
+    [MaxLength(100)]
+    public string City { get; set; } = string.Empty;
 
-    public string State { get; set; } = null!;
+    [Required]
+    [MaxLength(100)]
+    public string State { get; set; } = string.Empty;
 
-    public string PinCode { get; set; } = null!;
+    [Required]
+    [MaxLength(10)]
+    public string PinCode { get; set; } = string.Empty;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

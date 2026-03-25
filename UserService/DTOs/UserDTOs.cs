@@ -12,7 +12,7 @@ public class CreateProfileDto
     public string FullName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Date of birth is required.")]
-    public DateOnly DateOfBirth { get; set; }
+    public DateTime DateOfBirth { get; set; }
 
     [Required(ErrorMessage = "Address is required.")]
     public string Address { get; set; } = string.Empty;
@@ -33,7 +33,7 @@ public class ProfileResponseDto
     public int Id { get; set; }
     public int AuthUserId { get; set; }
     public string FullName { get; set; } = string.Empty;
-    public DateOnly DateOfBirth { get; set; }
+    public DateTime DateOfBirth { get; set; }
     public string Address { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string State { get; set; } = string.Empty;
@@ -62,4 +62,11 @@ public class KycResponseDto
     public string Status { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
     public DateTime SubmittedAt { get; set; }
+}
+
+public class ReviewKycDto
+{
+    [Required]
+    public string Status { get; set; } = string.Empty;
+    public string? RejectionReason { get; set; }
 }

@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using UserService.Data;
 using UserService.Extensions;
 using UserService.Middleware;
 
@@ -7,9 +9,18 @@ builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddSwaggerDocumentation();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true);
 
 var app = builder.Build();
+
+// Auto-apply migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSwagger();

@@ -1,70 +1,100 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RewardsService.Models;
 
 namespace RewardsService.Data;
 
-public partial class RewardsDbContext : DbContext
+public class RewardsDbContext : DbContext
 {
     public RewardsDbContext(DbContextOptions<RewardsDbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
-    public virtual DbSet<Redemption> Redemptions { get; set; }
-
-    public virtual DbSet<RewardAccount> RewardAccounts { get; set; }
-
-    public virtual DbSet<RewardCatalog> RewardCatalogs { get; set; }
+    public DbSet<RewardAccount> RewardAccounts { get; set; }
+    public DbSet<RewardCatalog> RewardCatalogs { get; set; }
+    public DbSet<Redemption> Redemptions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Redemption>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Redempti__3214EC07F9C10426");
-
-            entity.Property(e => e.RedeemedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.RewardCatalog).WithMany(p => p.Redemptions)
-                .HasForeignKey(d => d.RewardCatalogId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Redemptio__Rewar__6754599E");
-        });
-
         modelBuilder.Entity<RewardAccount>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__RewardAc__3214EC07B11D0AA4");
+            entity.HasIndex(e => e.AuthUserId)
+                  .IsUnique()
+                  .HasDatabaseName("IX_RewardAccounts_AuthUserId");
 
-            entity.HasIndex(e => e.AuthUserId, "UQ__RewardAc__7CD892F51BF87EDE").IsUnique();
+            entity.Property(e => e.Tier)
+                  .HasDefaultValue("Silver");
+
+            entity.Property(e => e.TotalPoints)
+                  .HasDefaultValue(0);
 
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Tier)
-                .HasMaxLength(20)
-                .HasDefaultValue("Silver");
+                  .HasDefaultValueSql("GETDATE()");
         });
 
         modelBuilder.Entity<RewardCatalog>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__RewardCa__3214EC071CDA439F");
+            entity.Property(e => e.Stock)
+                  .HasDefaultValue(-1);
 
-            entity.ToTable("RewardCatalog");
+            entity.Property(e => e.IsActive)
+                  .HasDefaultValue(true);
 
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(300);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Stock).HasDefaultValue(-1);
-            entity.Property(e => e.Title).HasMaxLength(150);
+                  .HasDefaultValueSql("GETDATE()");
         });
 
-        OnModelCreatingPartial(modelBuilder);
-    }
+        modelBuilder.Entity<Redemption>(entity =>
+        {
+            entity.HasOne(e => e.RewardCatalog)
+                  .WithMany(c => c.Redemptions)
+                  .HasForeignKey(e => e.RewardCatalogId)
+                  .OnDelete(DeleteBehavior.Restrict);
 
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+            entity.Property(e => e.RedeemedAt)
+                  .HasDefaultValueSql("GETDATE()");
+        });
+
+        // Seed catalog data
+        modelBuilder.Entity<RewardCatalog>().HasData(
+            new RewardCatalog
+            {
+                Id = 1,
+                Title = "Amazon Voucher Rs.100",
+                Description = "Amazon gift voucher worth Rs.100",
+                PointsCost = 100,
+                Stock = -1,
+                IsActive = true,
+                CreatedAt = new DateTime(2026, 1, 1)
+            },
+            new RewardCatalog
+            {
+                Id = 2,
+                Title = "Free Movie Ticket",
+                Description = "BookMyShow voucher for 1 ticket",
+                PointsCost = 500,
+                Stock = 50,
+                IsActive = true,
+                CreatedAt = new DateTime(2026, 1, 1)
+            },
+            new RewardCatalog
+            {
+                Id = 3,
+                Title = "Cashback Rs.50",
+                Description = "Rs.50 cashback to your wallet",
+                PointsCost = 200,
+                Stock = -1,
+                IsActive = true,
+                CreatedAt = new DateTime(2026, 1, 1)
+            },
+            new RewardCatalog
+            {
+                Id = 4,
+                Title = "Premium Membership",
+                Description = "1 month premium access",
+                PointsCost = 1000,
+                Stock = 20,
+                IsActive = true,
+                CreatedAt = new DateTime(2026, 1, 1)
+            }
+        );
+    }
 }

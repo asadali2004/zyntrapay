@@ -1,19 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RewardsService.Models;
 
-public partial class Redemption
+[Table("Redemptions")]
+public class Redemption
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
+    [Required]
     public int AuthUserId { get; set; }
 
+    [Required]
     public int RewardCatalogId { get; set; }
 
+    [Required]
     public int PointsSpent { get; set; }
 
-    public DateTime RedeemedAt { get; set; }
+    public DateTime RedeemedAt { get; set; } = DateTime.UtcNow;
 
-    public virtual RewardCatalog RewardCatalog { get; set; } = null!;
+    // Navigation property
+    [ForeignKey("RewardCatalogId")]
+    public RewardCatalog RewardCatalog { get; set; } = null!;
 }

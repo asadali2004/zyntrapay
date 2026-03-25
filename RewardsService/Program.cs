@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using RewardsService.Data;
 using RewardsService.Extensions;
 using RewardsService.Middleware;
 
@@ -12,6 +14,13 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true);
 
 var app = builder.Build();
+
+// Auto-apply migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<RewardsDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSwagger();

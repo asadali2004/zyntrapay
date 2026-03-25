@@ -1,17 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RewardsService.Models;
 
-public partial class RewardAccount
+[Table("RewardAccounts")]
+public class RewardAccount
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
+    [Required]
     public int AuthUserId { get; set; }
 
-    public int TotalPoints { get; set; }
+    public int TotalPoints { get; set; } = 0;
 
-    public string Tier { get; set; } = null!;
+    [Required]
+    [MaxLength(20)]
+    public string Tier { get; set; } = "Silver";
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -59,6 +59,8 @@ public static class ServiceExtensions
         services.AddHostedService<WalletTopUpNotificationConsumer>();
         services.AddHostedService<WalletTransferNotificationConsumer>();
         services.AddHostedService<KycStatusChangedConsumer>();
+        services.AddHostedService<OtpRequestedConsumer>();
+        services.AddHostedService<WelcomeEmailConsumer>();
         return services;
     }
 

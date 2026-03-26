@@ -2,11 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using NotificationService.Consumers;
 using NotificationService.Data;
+using NotificationService.Models;
 using NotificationService.Repositories;
 using NotificationService.Services;
+using System.Text;
 
 namespace NotificationService.Extensions;
 
@@ -17,6 +18,13 @@ public static class ServiceExtensions
     {
         services.AddDbContext<NotificationDbContext>(options =>
             options.UseSqlServer(config.GetConnectionString("NotificationDB")));
+        return services;
+    }
+
+    public static IServiceCollection AddEmailSettings(
+    this IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
         return services;
     }
 
@@ -47,8 +55,10 @@ public static class ServiceExtensions
     {
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationService, NotificationServiceImpl>();
+        services.AddScoped<IEmailService, EmailService>();
         services.AddHostedService<WalletTopUpNotificationConsumer>();
         services.AddHostedService<WalletTransferNotificationConsumer>();
+        services.AddHostedService<KycStatusChangedConsumer>();
         return services;
     }
 

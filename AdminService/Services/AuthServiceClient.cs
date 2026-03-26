@@ -30,4 +30,21 @@ public class AuthServiceClient : IAuthServiceClient
         var response = await _httpClient.PutAsync($"/api/auth/admin/users/{userId}/toggle", null);
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<string?> GetUserEmailAsync(int authUserId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"/api/auth/users/{authUserId}/email");
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<string>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch
+        {
+            _logger.LogWarning("Failed to fetch email for AuthUserId {AuthUserId}", authUserId);
+            return null;
+        }
+    }
 }

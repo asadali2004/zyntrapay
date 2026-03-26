@@ -13,6 +13,9 @@ public class Wallet
     [Required]
     public int AuthUserId { get; set; }
 
+    [MaxLength(150)]
+    public string UserEmail { get; set; } = string.Empty;
+
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     public decimal Balance { get; set; } = 0;

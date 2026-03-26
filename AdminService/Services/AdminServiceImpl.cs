@@ -1,6 +1,7 @@
 ﻿using AdminService.DTOs;
 using AdminService.Models;
 using AdminService.Repositories;
+using Shared.Events;
 
 namespace AdminService.Services;
 
@@ -9,17 +10,20 @@ public class AdminServiceImpl : IAdminService
     private readonly IAdminRepository _repo;
     private readonly IUserServiceClient _userClient;
     private readonly IAuthServiceClient _authClient;
+    private readonly IRabbitMqPublisher _publisher;
     private readonly ILogger<AdminServiceImpl> _logger;
 
     public AdminServiceImpl(
         IAdminRepository repo,
         IUserServiceClient userClient,
         IAuthServiceClient authClient,
+        IRabbitMqPublisher publisher,
         ILogger<AdminServiceImpl> logger)
     {
         _repo = repo;
         _userClient = userClient;
         _authClient = authClient;
+        _publisher = publisher;
         _logger = logger;
     }
 
@@ -44,6 +48,15 @@ public class AdminServiceImpl : IAdminService
         var success = await _userClient.ReviewKycAsync(kycId, dto);
         if (!success)
             return (false, "Failed to update KYC status.");
+
+        // Publish KYC status change event using DTO-provided data
+        _publisher.Publish(new KycStatusChangedEvent
+        {
+            AuthUserId = dto.TargetAuthUserId,
+            UserEmail = dto.UserEmail,
+            Status = dto.Status,
+            Reason = dto.RejectionReason
+        });
 
         // Log audit trail
         await _repo.AddActionAsync(new AdminAction

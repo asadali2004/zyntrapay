@@ -7,6 +7,7 @@ using NotificationService.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDatabase(builder.Configuration);
+builder.Services.AddEmailSettings(builder.Configuration);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddSwaggerDocumentation();

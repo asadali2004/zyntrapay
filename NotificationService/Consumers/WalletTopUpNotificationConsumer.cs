@@ -54,14 +54,27 @@ public class WalletTopUpNotificationConsumer : BackgroundService
                         if (@event != null)
                         {
                             using var scope = _scopeFactory.CreateScope();
-                            var svc = scope.ServiceProvider
+                            var notificationSvc = scope.ServiceProvider
                                 .GetRequiredService<INotificationService>();
+                            var emailSvc = scope.ServiceProvider
+                                .GetRequiredService<IEmailService>();
 
-                            await svc.CreateAsync(
+                            // Save in-app notification
+                            await notificationSvc.CreateAsync(
                                 @event.AuthUserId,
                                 "Wallet Top-Up Successful",
                                 $"Your wallet has been credited with Rs.{@event.Amount:F2}. New balance: Rs.{@event.NewBalance:F2}."
                             );
+
+                            // Send email
+                            if (!string.IsNullOrEmpty(@event.UserEmail))
+                            {
+                                await emailSvc.SendAsync(
+                                    @event.UserEmail,
+                                    "ZyntraPay — Wallet Top-Up Successful",
+                                    EmailTemplates.TransactionEmail("Top-Up", @event.Amount, @event.NewBalance)
+                                );
+                            }
                         }
 
                         channel.BasicAck(ea.DeliveryTag, false);

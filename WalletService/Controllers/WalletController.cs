@@ -21,10 +21,13 @@ public class WalletController : ControllerBase
     private int GetAuthUserId()
         => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    private string GetUserEmail()
+        => User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+
     [HttpPost("create")]
     public async Task<IActionResult> CreateWallet()
     {
-        var (success, message) = await _walletService.CreateWalletAsync(GetAuthUserId());
+        var (success, message) = await _walletService.CreateWalletAsync(GetAuthUserId(), GetUserEmail());
         if (!success) return BadRequest(new { message });
         return Ok(new { message });
     }
@@ -40,7 +43,8 @@ public class WalletController : ControllerBase
     [HttpPost("topup")]
     public async Task<IActionResult> TopUp([FromBody] TopUpRequestDto dto)
     {
-        var (success, message) = await _walletService.TopUpAsync(GetAuthUserId(), dto);
+        var (success, message) = await _walletService.TopUpAsync(
+            GetAuthUserId(), GetUserEmail(), dto);
         if (!success) return BadRequest(new { message });
         return Ok(new { message });
     }
@@ -48,7 +52,8 @@ public class WalletController : ControllerBase
     [HttpPost("transfer")]
     public async Task<IActionResult> Transfer([FromBody] TransferRequestDto dto)
     {
-        var (success, message) = await _walletService.TransferAsync(GetAuthUserId(), dto);
+        var (success, message) = await _walletService.TransferAsync(
+            GetAuthUserId(), GetUserEmail(), dto);
         if (!success) return BadRequest(new { message });
         return Ok(new { message });
     }

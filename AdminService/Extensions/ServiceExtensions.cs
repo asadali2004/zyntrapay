@@ -46,6 +46,7 @@ public static class ServiceExtensions
     {
         services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IAdminService, AdminServiceImpl>();
+        services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
 
         // Register IHttpContextAccessor and handler
         services.AddHttpContextAccessor();

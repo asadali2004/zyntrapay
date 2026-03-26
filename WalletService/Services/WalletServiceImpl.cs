@@ -21,7 +21,7 @@ public class WalletServiceImpl : IWalletService
         _publisher = publisher;
     }
 
-    public async Task<(bool Success, string Message)> CreateWalletAsync(int authUserId)
+    public async Task<(bool Success, string Message)> CreateWalletAsync(int authUserId, string userEmail)
     {
         _logger.LogInformation("Creating wallet for AuthUserId: {Id}", authUserId);
 
@@ -31,6 +31,7 @@ public class WalletServiceImpl : IWalletService
         var wallet = new Wallet
         {
             AuthUserId = authUserId,
+            UserEmail = userEmail,
             Balance = 0,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -59,7 +60,7 @@ public class WalletServiceImpl : IWalletService
         }, "Balance fetched successfully.");
     }
 
-    public async Task<(bool Success, string Message)> TopUpAsync(int authUserId, TopUpRequestDto dto)
+    public async Task<(bool Success, string Message)> TopUpAsync(int authUserId, string userEmail, TopUpRequestDto dto)
     {
         _logger.LogInformation("TopUp request for AuthUserId: {Id}, Amount: {Amount}", authUserId, dto.Amount);
 
@@ -90,6 +91,7 @@ public class WalletServiceImpl : IWalletService
         _publisher.Publish(new WalletTopUpCompletedEvent
         {
             AuthUserId = authUserId,
+            UserEmail = userEmail,
             Amount = dto.Amount,
             NewBalance = wallet.Balance,
             Timestamp = DateTime.UtcNow
@@ -99,7 +101,7 @@ public class WalletServiceImpl : IWalletService
         return (true, $"Top-up of {dto.Amount:C} successful. New balance: {wallet.Balance:C}");
     }
 
-    public async Task<(bool Success, string Message)> TransferAsync(int authUserId, TransferRequestDto dto)
+    public async Task<(bool Success, string Message)> TransferAsync(int authUserId, string senderEmail, TransferRequestDto dto)
     {
         _logger.LogInformation("Transfer request from AuthUserId: {From} to {To}, Amount: {Amount}",
             authUserId, dto.ReceiverAuthUserId, dto.Amount);
@@ -150,11 +152,13 @@ public class WalletServiceImpl : IWalletService
 
         await _repo.SaveChangesAsync();
 
-        // Publish event
+        // Publish event — read receiver email from wallet
         _publisher.Publish(new WalletTransferCompletedEvent
         {
             SenderAuthUserId = authUserId,
+            SenderEmail = senderEmail,
             ReceiverAuthUserId = dto.ReceiverAuthUserId,
+            ReceiverEmail = receiverWallet.UserEmail,
             Amount = dto.Amount,
             Timestamp = DateTime.UtcNow
         });

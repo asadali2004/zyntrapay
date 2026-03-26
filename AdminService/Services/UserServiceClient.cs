@@ -33,4 +33,21 @@ public class UserServiceClient : IUserServiceClient
         var response = await _httpClient.PutAsync($"/api/user/admin/kyc/{kycId}/review", content);
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<KycSubmissionDto?> GetKycByIdAsync(int kycId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"/api/user/admin/kyc/{kycId}");
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<KycSubmissionDto>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch
+        {
+            _logger.LogWarning("Failed to fetch KYC {KycId}", kycId);
+            return null;
+        }
+    }
 }

@@ -8,6 +8,11 @@ public class ReviewKycDto
     public string Status { get; set; } = string.Empty; // Approved / Rejected
 
     public string? RejectionReason { get; set; }
+    
+    public int TargetAuthUserId { get; set; }
+    
+    [MaxLength(150)]
+    public string UserEmail { get; set; } = string.Empty;
 }
 
 public class KycSubmissionDto

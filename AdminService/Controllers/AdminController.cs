@@ -32,8 +32,25 @@ public class AdminController : ControllerBase
     [HttpPut("kyc/{kycId}/review")]
     public async Task<IActionResult> ReviewKyc(int kycId, [FromBody] ReviewKycDto dto)
     {
-        var (success, message) = await _adminService.ReviewKycAsync(GetAuthUserId(), kycId, dto);
-        if (!success) return BadRequest(new { message });
+        // Fetch KYC to get AuthUserId and email before reviewing
+        var (success, kycs, _) = await _adminService.GetPendingKycsAsync();
+        var kyc = kycs?.FirstOrDefault(k => k.Id == kycId);
+
+        if (kyc != null)
+        {
+            dto.TargetAuthUserId = kyc.AuthUserId;
+            
+            // Email lookup — fetch all users and match by AuthUserId
+            var (userSuccess, users, _) = await _adminService.GetAllUsersAsync();
+            if (userSuccess)
+            {
+                dto.UserEmail = users?
+                    .FirstOrDefault(u => u.Id == kyc.AuthUserId)?.Email ?? string.Empty;
+            }
+        }
+
+        var (reviewSuccess, message) = await _adminService.ReviewKycAsync(GetAuthUserId(), kycId, dto);
+        if (!reviewSuccess) return BadRequest(new { message });
         return Ok(new { message });
     }
 

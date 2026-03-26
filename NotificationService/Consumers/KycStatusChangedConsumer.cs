@@ -1,4 +1,4 @@
-﻿using RabbitMQ.Client;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Shared.Events;
 using System.Text;
@@ -7,15 +7,15 @@ using NotificationService.Services;
 
 namespace NotificationService.Consumers;
 
-public class WalletTransferNotificationConsumer : BackgroundService
+public class KycStatusChangedConsumer : BackgroundService
 {
     private readonly IConfiguration _config;
-    private readonly ILogger<WalletTransferNotificationConsumer> _logger;
+    private readonly ILogger<KycStatusChangedConsumer> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public WalletTransferNotificationConsumer(
+    public KycStatusChangedConsumer(
         IConfiguration config,
-        ILogger<WalletTransferNotificationConsumer> logger,
+        ILogger<KycStatusChangedConsumer> logger,
         IServiceScopeFactory scopeFactory)
     {
         _config = config;
@@ -38,7 +38,7 @@ public class WalletTransferNotificationConsumer : BackgroundService
 
                 var connection = factory.CreateConnection();
                 var channel = connection.CreateModel();
-                var queueName = nameof(WalletTransferCompletedEvent);
+                var queueName = nameof(KycStatusChangedEvent);
 
                 channel.QueueDeclare(queue: queueName, durable: true,
                     exclusive: false, autoDelete: false, arguments: null);
@@ -49,47 +49,31 @@ public class WalletTransferNotificationConsumer : BackgroundService
                     try
                     {
                         var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-                        var @event = JsonSerializer.Deserialize<WalletTransferCompletedEvent>(json);
+                        var @event = JsonSerializer.Deserialize<KycStatusChangedEvent>(json);
 
                         if (@event != null)
                         {
                             using var scope = _scopeFactory.CreateScope();
-                            var notificationSvc = scope.ServiceProvider
-                                .GetRequiredService<INotificationService>();
-                            var emailSvc = scope.ServiceProvider
-                                .GetRequiredService<IEmailService>();
+                            var svc = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                            var emailSvc = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-                            // Notify sender
-                            await notificationSvc.CreateAsync(
-                                @event.SenderAuthUserId,
-                                "Transfer Successful",
-                                $"You have successfully transferred Rs.{@event.Amount:F2}."
+                            // In-app notification
+                            var emoji = @event.Status == "Approved" ? "✅" : "❌";
+                            await svc.CreateAsync(
+                                @event.AuthUserId,
+                                $"KYC {@event.Status} {emoji}",
+                                @event.Status == "Approved"
+                                    ? "Your KYC has been approved. All features are now unlocked."
+                                    : $"Your KYC was rejected. Reason: {@event.Reason}"
                             );
 
-                            // Send sender email
-                            if (!string.IsNullOrEmpty(@event.SenderEmail))
+                            // Email notification
+                            if (!string.IsNullOrEmpty(@event.UserEmail))
                             {
                                 await emailSvc.SendAsync(
-                                    @event.SenderEmail,
-                                    "ZyntraPay — Transfer Successful",
-                                    EmailTemplates.TransactionEmail("Transfer Sent", @event.Amount, 0)
-                                );
-                            }
-
-                            // Notify receiver
-                            await notificationSvc.CreateAsync(
-                                @event.ReceiverAuthUserId,
-                                "Money Received",
-                                $"You have received Rs.{@event.Amount:F2} in your wallet."
-                            );
-
-                            // Send receiver email
-                            if (!string.IsNullOrEmpty(@event.ReceiverEmail))
-                            {
-                                await emailSvc.SendAsync(
-                                    @event.ReceiverEmail,
-                                    "ZyntraPay — Money Received",
-                                    EmailTemplates.TransactionEmail("Transfer Received", @event.Amount, 0)
+                                    @event.UserEmail,
+                                    $"ZyntraPay — KYC {@event.Status}",
+                                    EmailTemplates.KycStatusEmail(@event.Status, @event.Reason)
                                 );
                             }
                         }
@@ -98,13 +82,13 @@ public class WalletTransferNotificationConsumer : BackgroundService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error processing WalletTransferCompleted");
+                        _logger.LogError(ex, "Error processing KycStatusChanged");
                         channel.BasicNack(ea.DeliveryTag, false, requeue: true);
                     }
                 };
 
                 channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
-                _logger.LogInformation("WalletTransferNotificationConsumer listening...");
+                _logger.LogInformation("KycStatusChangedConsumer listening...");
                 await Task.Delay(Timeout.Infinite, stoppingToken);
                 break;
             }

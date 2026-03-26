@@ -6,4 +6,5 @@ public interface IUserServiceClient
 {
     Task<List<KycSubmissionDto>> GetPendingKycsAsync();
     Task<bool> ReviewKycAsync(int kycId, ReviewKycDto dto);
+    Task<KycSubmissionDto?> GetKycByIdAsync(int kycId);
 }

@@ -17,6 +17,9 @@ public class TransferRequestDto
     [Required(ErrorMessage = "Receiver user ID is required.")]
     public int ReceiverAuthUserId { get; set; }
 
+    [EmailAddress(ErrorMessage = "Receiver email must be valid.")]
+    public string? ReceiverEmail { get; set; }
+
     [Required]
     [Range(1, 25000, ErrorMessage = "Transfer amount must be between 1 and 25,000.")]
     public decimal Amount { get; set; }

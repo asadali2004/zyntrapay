@@ -1,8 +1,11 @@
 ﻿using AuthService.DTOs;
 using AuthService.Models;
 using AuthService.Repositories;
+using Google.Apis.Auth;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Events;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -23,24 +26,75 @@ public class AuthServiceImpl : IAuthService
     private readonly JwtSettings _jwt;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthServiceImpl> _logger;
+    private readonly IMemoryCache _cache;
+    private readonly IRabbitMqPublisher _publisher;
 
     public AuthServiceImpl(
         IAuthRepository repo,
         IOptions<JwtSettings> jwt,
         IConfiguration configuration,
-        ILogger<AuthServiceImpl> logger)
+        ILogger<AuthServiceImpl> logger,
+        IMemoryCache cache,
+        IRabbitMqPublisher publisher)
     {
         _repo = repo;
         _jwt = jwt.Value;
         _configuration = configuration;
         _logger = logger;
+        _cache = cache;
+        _publisher = publisher;
+    }
+
+    public Task<(bool Success, string Message)> SendOtpAsync(SendOtpRequestDto dto)
+    {
+        _logger.LogInformation("OTP requested for email: {Email}", dto.Email);
+
+        var normalizedEmail = dto.Email.ToLower();
+        var otp = Random.Shared.Next(100000, 999999).ToString();
+        var cacheKey = $"otp_{normalizedEmail}";
+
+        _cache.Set(cacheKey, otp, TimeSpan.FromMinutes(10));
+
+        _publisher.Publish(new OtpRequestedEvent
+        {
+            Email = normalizedEmail,
+            Otp = otp,
+            Timestamp = DateTime.UtcNow
+        });
+
+        _logger.LogInformation("OTP sent for email: {Email}", normalizedEmail);
+        return Task.FromResult((true, "OTP sent to your email. Valid for 10 minutes."));
+    }
+
+    public Task<(bool Success, string Message)> VerifyOtpAsync(VerifyOtpRequestDto dto)
+    {
+        var normalizedEmail = dto.Email.ToLower();
+        var cacheKey = $"otp_{normalizedEmail}";
+
+        if (!_cache.TryGetValue(cacheKey, out string? storedOtp))
+            return Task.FromResult((false, "OTP expired or not found. Please request a new OTP."));
+
+        if (storedOtp != dto.Otp)
+            return Task.FromResult((false, "Invalid OTP. Please try again."));
+
+        _cache.Remove(cacheKey);
+        _cache.Set($"verified_{normalizedEmail}", true, TimeSpan.FromMinutes(15));
+
+        _logger.LogInformation("OTP verified for email: {Email}", normalizedEmail);
+        return Task.FromResult((true, "Email verified successfully. You can now complete registration."));
     }
 
     public async Task<(bool Success, string Message)> RegisterAsync(RegisterRequestDto dto)
     {
-        _logger.LogInformation("Register attempt for email: {Email}", dto.Email); 
+        _logger.LogInformation("Register attempt for email: {Email}", dto.Email);
 
-        if (await _repo.EmailExistsAsync(dto.Email))
+        var normalizedEmail = dto.Email.ToLower();
+
+        // Check OTP was verified
+        if (!_cache.TryGetValue($"verified_{normalizedEmail}", out bool verified) || !verified)
+            return (false, "Email not verified. Please verify OTP before registering.");
+
+        if (await _repo.EmailExistsAsync(normalizedEmail))
             return (false, "Email already registered.");
 
         if (await _repo.PhoneExistsAsync(dto.PhoneNumber))
@@ -48,7 +102,7 @@ public class AuthServiceImpl : IAuthService
 
         var user = new User
         {
-            Email = dto.Email,
+            Email = normalizedEmail,
             PhoneNumber = dto.PhoneNumber,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Role = "User",
@@ -59,7 +113,17 @@ public class AuthServiceImpl : IAuthService
         await _repo.AddUserAsync(user);
         await _repo.SaveChangesAsync();
 
-        _logger.LogInformation("User registered successfully: {Email}", dto.Email); 
+        // Remove verified flag after registration
+        _cache.Remove($"verified_{normalizedEmail}");
+
+        // Publish welcome email event
+        _publisher.Publish(new WelcomeEmailRequestedEvent
+        {
+            Email = normalizedEmail,
+            Timestamp = DateTime.UtcNow
+        });
+
+        _logger.LogInformation("User registered successfully: {Email}", normalizedEmail);
         return (true, "Registration successful.");
     }
 
@@ -113,9 +177,111 @@ public class AuthServiceImpl : IAuthService
         {
             Token = token,
             Email = user.Email,
-            Role = user.Role
+            Role = user.Role,
+            PhoneUpdateRequired = IsTemporaryPhone(user.PhoneNumber)
         }, "Login successful.");
     }
+
+    public async Task<(bool Success, AuthResponseDto? Data, string Message)> GoogleLoginAsync(
+        GoogleLoginRequestDto dto)
+    {
+        _logger.LogInformation("Google login attempt");
+
+        try
+        {
+            var settings = new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[] { _configuration["GoogleAuth:ClientId"] }
+            };
+
+            var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+            var normalizedEmail = payload.Email.ToLower();
+
+            var existingUser = await _repo.GetByEmailAsync(normalizedEmail);
+            if (existingUser != null)
+            {
+                if (!existingUser.IsActive)
+                    return (false, null, "Account is deactivated.");
+
+                var token = GenerateToken(existingUser);
+                _logger.LogInformation("Google login successful for: {Email}", normalizedEmail);
+
+                return (true, new AuthResponseDto
+                {
+                    Token = token,
+                    Email = existingUser.Email,
+                    Role = existingUser.Role,
+                    PhoneUpdateRequired = IsTemporaryPhone(existingUser.PhoneNumber)
+                }, "Login successful.");
+            }
+
+            var temporaryPhone = await GenerateUniqueTemporaryPhoneAsync();
+            var newUser = new User
+            {
+                Email = normalizedEmail,
+                PhoneNumber = temporaryPhone,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()),
+                Role = "User",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _repo.AddUserAsync(newUser);
+            await _repo.SaveChangesAsync();
+
+            _publisher.Publish(new WelcomeEmailRequestedEvent
+            {
+                Email = newUser.Email,
+                Timestamp = DateTime.UtcNow
+            });
+
+            var newToken = GenerateToken(newUser);
+            _logger.LogInformation("New user auto-registered via Google: {Email}", normalizedEmail);
+
+            return (true, new AuthResponseDto
+            {
+                Token = newToken,
+                Email = newUser.Email,
+                Role = newUser.Role,
+                PhoneUpdateRequired = true
+            }, "Registration via Google successful.");
+        }
+        catch (InvalidJwtException ex)
+        {
+            _logger.LogWarning("Invalid Google token: {Message}", ex.Message);
+            return (false, null, "Invalid Google token. Please try again.");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> UpdatePhoneAsync(int userId, UpdatePhoneDto dto)
+    {
+        if (await _repo.PhoneExistsAsync(dto.PhoneNumber))
+            return (false, "Phone number already in use.");
+
+        var user = await _repo.GetByIdAsync(userId);
+        if (user == null)
+            return (false, "User not found.");
+
+        user.PhoneNumber = dto.PhoneNumber;
+        await _repo.SaveChangesAsync();
+
+        return (true, "Phone number updated successfully.");
+    }
+
+    private async Task<string> GenerateUniqueTemporaryPhoneAsync()
+    {
+        for (var i = 0; i < 20; i++)
+        {
+            var candidate = $"1{Random.Shared.Next(0, 1_000_000_000):D9}";
+            if (!await _repo.PhoneExistsAsync(candidate))
+                return candidate;
+        }
+
+        throw new InvalidOperationException("Failed to generate a unique temporary phone number.");
+    }
+
+    private bool IsTemporaryPhone(string phoneNumber)
+        => !string.IsNullOrWhiteSpace(phoneNumber) && phoneNumber.StartsWith("1");
 
     private string GenerateToken(User user)
     {

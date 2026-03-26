@@ -52,6 +52,7 @@ public class AuthResponseDto
     public string Token { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
+    public bool PhoneUpdateRequired { get; set; }
 }
 
 public class UserSummaryDto
@@ -62,4 +63,35 @@ public class UserSummaryDto
     public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+}
+
+public class SendOtpRequestDto
+{
+    [Required(ErrorMessage = "Email is required.")]
+    [EmailAddress(ErrorMessage = "Invalid email format.")]
+    public string Email { get; set; } = string.Empty;
+}
+
+public class VerifyOtpRequestDto
+{
+    [Required(ErrorMessage = "Email is required.")]
+    [EmailAddress(ErrorMessage = "Invalid email format.")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "OTP is required.")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "OTP must be 6 digits.")]
+    public string Otp { get; set; } = string.Empty;
+}
+
+public class GoogleLoginRequestDto
+{
+    [Required(ErrorMessage = "Google ID token is required.")]
+    public string IdToken { get; set; } = string.Empty;
+}
+
+public class UpdatePhoneDto
+{
+    [Required]
+    [RegularExpression(@"^\d{10}$", ErrorMessage = "Phone must be exactly 10 digits.")]
+    public string PhoneNumber { get; set; } = string.Empty;
 }

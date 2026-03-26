@@ -46,6 +46,8 @@ public static class ServiceExtensions
     {
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IAuthService, AuthServiceImpl>();
+        services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
+        services.AddMemoryCache();
         return services;
     }
 

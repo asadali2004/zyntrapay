@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Extensions.Http;
+using Polly.Timeout;
+using System.Net.Http;
 using System.Text;
 
 namespace AdminService.Extensions;
@@ -52,20 +56,43 @@ public static class ServiceExtensions
         services.AddHttpContextAccessor();
         services.AddTransient<AuthTokenHandler>();
 
-        // HttpClient for UserService — with token forwarding
+        // HttpClient for UserService — with token forwarding + resilience
         services.AddHttpClient<IUserServiceClient, UserServiceClient>(client =>
         {
             client.BaseAddress = new Uri(config["ServiceUrls:UserService"]!);
-        }).AddHttpMessageHandler<AuthTokenHandler>();
+        })
+        .AddHttpMessageHandler<AuthTokenHandler>()
+        .AddPolicyHandler(GetRetryPolicy())
+        .AddPolicyHandler(GetCircuitBreakerPolicy())
+        .AddPolicyHandler(GetTimeoutPolicy());
 
-        // HttpClient for AuthService — with token forwarding
+        // HttpClient for AuthService — with token forwarding + resilience
         services.AddHttpClient<IAuthServiceClient, AuthServiceClient>(client =>
         {
             client.BaseAddress = new Uri(config["ServiceUrls:AuthService"]!);
-        }).AddHttpMessageHandler<AuthTokenHandler>();
+        })
+        .AddHttpMessageHandler<AuthTokenHandler>()
+        .AddPolicyHandler(GetRetryPolicy())
+        .AddPolicyHandler(GetCircuitBreakerPolicy())
+        .AddPolicyHandler(GetTimeoutPolicy());
 
         return services;
     }
+
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        => HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .Or<TimeoutRejectedException>()
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+    private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+        => HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .Or<TimeoutRejectedException>()
+            .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
+
+    private static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
+        => Policy.TimeoutAsync<HttpResponseMessage>(10);
 
     public static IServiceCollection AddSwaggerDocumentation(
         this IServiceCollection services)

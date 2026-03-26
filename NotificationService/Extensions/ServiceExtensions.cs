@@ -61,6 +61,7 @@ public static class ServiceExtensions
         services.AddHostedService<KycStatusChangedConsumer>();
         services.AddHostedService<OtpRequestedConsumer>();
         services.AddHostedService<WelcomeEmailConsumer>();
+        services.AddHostedService<PointsAwardedNotificationConsumer>();
         return services;
     }
 

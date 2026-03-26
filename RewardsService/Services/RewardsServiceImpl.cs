@@ -3,6 +3,7 @@ using RewardsService.DTOs;
 using RewardsService.Helpers;
 using RewardsService.Models;
 using RewardsService.Repositories;
+using Shared.Events;
 
 namespace RewardsService.Services;
 
@@ -11,17 +12,20 @@ public class RewardsServiceImpl : IRewardsService
     private readonly IRewardsRepository _repo;
     private readonly ILogger<RewardsServiceImpl> _logger;
     private readonly IMemoryCache _cache;
+    private readonly IRabbitMqPublisher _publisher;
 
     private const string CatalogCacheKey = "rewards_catalog";
 
     public RewardsServiceImpl(
         IRewardsRepository repo,
         ILogger<RewardsServiceImpl> logger,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        IRabbitMqPublisher publisher)
     {
         _repo = repo;
         _logger = logger;
         _cache = cache;
+        _publisher = publisher;
     }
 
     public async Task<(bool Success, RewardSummaryDto? Data, string Message)> GetSummaryAsync(int authUserId)
@@ -152,6 +156,15 @@ public class RewardsServiceImpl : IRewardsService
         }
 
         await _repo.SaveChangesAsync();
+
+        _publisher.Publish(new PointsAwardedEvent
+        {
+            AuthUserId = authUserId,
+            PointsEarned = pointsToAward,
+            TotalPoints = account.TotalPoints,
+            Tier = account.Tier,
+            Timestamp = DateTime.UtcNow
+        });
 
         _logger.LogInformation("Awarded {Points} points to AuthUserId: {Id}. New total: {Total}",
             pointsToAward, authUserId, account.TotalPoints);

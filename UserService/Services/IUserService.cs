@@ -10,5 +10,4 @@ public interface IUserService
     Task<(bool Success, KycResponseDto? Data, string Message)> GetKycStatusAsync(int authUserId);
     Task<(bool Success, List<KycResponseDto>? Data, string Message)> GetPendingKycsAsync();
     Task<(bool Success, string Message)> ReviewKycAsync(int kycId, ReviewKycDto dto);
-
 }

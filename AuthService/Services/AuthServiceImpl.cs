@@ -167,4 +167,13 @@ public class AuthServiceImpl : IAuthService
         _logger.LogInformation("User {Id} {Status}", userId, status);
         return (true, $"User {status} successfully.");
     }
+
+    public async Task<(bool Success, string? Data, string Message)> GetUserEmailAsync(int authUserId)
+    {
+        var user = await _repo.GetByIdAsync(authUserId);
+        if (user == null)
+            return (false, null, "User not found.");
+
+        return (true, user.Email, "Email fetched successfully.");
+    }
 }

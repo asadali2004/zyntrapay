@@ -10,4 +10,5 @@ public interface IAuthService
     Task<(bool Success, AuthResponseDto? Data, string Message)> LoginAsync(LoginRequestDto dto);
     Task<List<UserSummaryDto>> GetAllUsersAsync();
     Task<(bool Success, string Message)> ToggleUserStatusAsync(int userId);
+    Task<(bool Success, string? Data, string Message)> GetUserEmailAsync(int authUserId);
 }

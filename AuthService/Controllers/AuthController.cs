@@ -57,4 +57,14 @@ public class AuthController : ControllerBase
         if (!success) return NotFound(new { message });
         return Ok(new { message });
     }
+
+    // Internal endpoint for AdminService — get user email by AuthUserId
+    [HttpGet("users/{authUserId}/email")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetUserEmail(int authUserId)
+    {
+        var (success, data, message) = await _authService.GetUserEmailAsync(authUserId);
+        if (!success) return NotFound(new { message });
+        return Ok(data);
+    }
 }

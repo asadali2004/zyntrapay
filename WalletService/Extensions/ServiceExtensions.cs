@@ -47,6 +47,7 @@ public static class ServiceExtensions
         services.AddScoped<IWalletRepository, WalletRepository>();
         services.AddScoped<IWalletService, WalletServiceImpl>();
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
+        services.AddMemoryCache();
         return services;
     }
 

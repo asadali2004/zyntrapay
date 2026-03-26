@@ -48,6 +48,7 @@ public static class ServiceExtensions
         services.AddScoped<IRewardsRepository, RewardsRepository>();
         services.AddScoped<IRewardsService, RewardsServiceImpl>();
         services.AddHostedService<WalletTopUpConsumer>(); // ← RabbitMQ consumer
+        services.AddMemoryCache();
         return services;
     }
 

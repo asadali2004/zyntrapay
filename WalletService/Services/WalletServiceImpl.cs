@@ -1,4 +1,5 @@
-﻿using Shared.Events;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Shared.Events;
 using WalletService.DTOs;
 using WalletService.Models;
 using WalletService.Repositories;
@@ -10,15 +11,18 @@ public class WalletServiceImpl : IWalletService
     private readonly IWalletRepository _repo;
     private readonly ILogger<WalletServiceImpl> _logger;
     private readonly IRabbitMqPublisher _publisher;
+    private readonly IMemoryCache _cache;
 
     public WalletServiceImpl(
         IWalletRepository repo,
         ILogger<WalletServiceImpl> logger,
-        IRabbitMqPublisher publisher)
+        IRabbitMqPublisher publisher,
+        IMemoryCache cache)
     {
         _repo = repo;
         _logger = logger;
         _publisher = publisher;
+        _cache = cache;
     }
 
     public async Task<(bool Success, string Message)> CreateWalletAsync(int authUserId, string userEmail)
@@ -46,18 +50,31 @@ public class WalletServiceImpl : IWalletService
 
     public async Task<(bool Success, WalletResponseDto? Data, string Message)> GetBalanceAsync(int authUserId)
     {
+        var cacheKey = $"wallet_balance_{authUserId}";
+
+        if (_cache.TryGetValue(cacheKey, out WalletResponseDto? cached))
+        {
+            _logger.LogInformation("Balance served from cache for AuthUserId: {Id}", authUserId);
+            return (true, cached, "Balance fetched from cache.");
+        }
+
         var wallet = await _repo.GetWalletByAuthUserIdAsync(authUserId);
         if (wallet == null)
             return (false, null, "Wallet not found.");
 
-        return (true, new WalletResponseDto
+        var response = new WalletResponseDto
         {
             Id = wallet.Id,
             AuthUserId = wallet.AuthUserId,
             Balance = wallet.Balance,
             IsActive = wallet.IsActive,
             CreatedAt = wallet.CreatedAt
-        }, "Balance fetched successfully.");
+        };
+
+        _cache.Set(cacheKey, response, TimeSpan.FromSeconds(30));
+
+        _logger.LogInformation("Balance fetched from DB and cached for AuthUserId: {Id}", authUserId);
+        return (true, response, "Balance fetched successfully.");
     }
 
     public async Task<(bool Success, string Message)> TopUpAsync(int authUserId, string userEmail, TopUpRequestDto dto)
@@ -86,6 +103,7 @@ public class WalletServiceImpl : IWalletService
         // Update snapshot balance
         wallet.Balance += dto.Amount;
         await _repo.SaveChangesAsync();
+        _cache.Remove($"wallet_balance_{authUserId}");
 
         // Publish event to RabbitMQ
         _publisher.Publish(new WalletTopUpCompletedEvent
@@ -151,6 +169,8 @@ public class WalletServiceImpl : IWalletService
         receiverWallet.Balance += dto.Amount;
 
         await _repo.SaveChangesAsync();
+        _cache.Remove($"wallet_balance_{authUserId}");
+        _cache.Remove($"wallet_balance_{dto.ReceiverAuthUserId}");
 
         // Publish event — read receiver email from wallet
         _publisher.Publish(new WalletTransferCompletedEvent

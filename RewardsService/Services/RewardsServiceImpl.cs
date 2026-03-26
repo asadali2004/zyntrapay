@@ -1,4 +1,5 @@
-﻿using RewardsService.DTOs;
+﻿using Microsoft.Extensions.Caching.Memory;
+using RewardsService.DTOs;
 using RewardsService.Helpers;
 using RewardsService.Models;
 using RewardsService.Repositories;
@@ -9,11 +10,18 @@ public class RewardsServiceImpl : IRewardsService
 {
     private readonly IRewardsRepository _repo;
     private readonly ILogger<RewardsServiceImpl> _logger;
+    private readonly IMemoryCache _cache;
 
-    public RewardsServiceImpl(IRewardsRepository repo, ILogger<RewardsServiceImpl> logger)
+    private const string CatalogCacheKey = "rewards_catalog";
+
+    public RewardsServiceImpl(
+        IRewardsRepository repo,
+        ILogger<RewardsServiceImpl> logger,
+        IMemoryCache cache)
     {
         _repo = repo;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<(bool Success, RewardSummaryDto? Data, string Message)> GetSummaryAsync(int authUserId)
@@ -32,6 +40,12 @@ public class RewardsServiceImpl : IRewardsService
 
     public async Task<(bool Success, List<CatalogItemDto>? Data, string Message)> GetCatalogAsync()
     {
+        if (_cache.TryGetValue(CatalogCacheKey, out List<CatalogItemDto>? cached))
+        {
+            _logger.LogInformation("Catalog served from cache");
+            return (true, cached, "Catalog fetched from cache.");
+        }
+
         var items = await _repo.GetActiveCatalogAsync();
 
         var result = items.Select(c => new CatalogItemDto
@@ -43,6 +57,9 @@ public class RewardsServiceImpl : IRewardsService
             Stock = c.Stock
         }).ToList();
 
+        _cache.Set(CatalogCacheKey, result, TimeSpan.FromMinutes(5));
+
+        _logger.LogInformation("Catalog fetched from DB and cached");
         return (true, result, "Catalog fetched.");
     }
 
@@ -83,6 +100,7 @@ public class RewardsServiceImpl : IRewardsService
         });
 
         await _repo.SaveChangesAsync();
+        _cache.Remove(CatalogCacheKey);
 
         _logger.LogInformation("Redemption successful for AuthUserId: {Id}, Points spent: {Points}",
             authUserId, item.PointsCost);

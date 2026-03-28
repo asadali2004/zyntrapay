@@ -19,11 +19,17 @@ builder.Services.AddControllers()
 
 var app = builder.Build();
 
-
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-    db.Database.Migrate();
+    if (db.Database.IsRelational())
+    {
+        db.Database.Migrate();
+    }
+    else
+    {
+        db.Database.EnsureCreated();
+    }
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -36,3 +42,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Required for integration testing
+public partial class Program { }

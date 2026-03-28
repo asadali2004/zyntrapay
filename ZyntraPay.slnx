@@ -14,10 +14,14 @@
   </Folder>
   <Project Path="AdminService/AdminService.csproj" />
   <Project Path="ApiGateway/ApiGateway.csproj" />
+  <Project Path="AuthService.Tests/AuthService.Tests.csproj" />
   <Project Path="AuthService/AuthService.csproj" />
   <Project Path="NotificationService/NotificationService.csproj" />
+  <Project Path="RewardsService.Tests/RewardsService.Tests.csproj" />
   <Project Path="RewardsService/RewardsService.csproj" />
   <Project Path="Shared.Events/Shared.Events.csproj" />
   <Project Path="UserService/UserService.csproj" />
+  <Project Path="WalletService.Tests/WalletService.Tests.csproj" />
   <Project Path="WalletService/WalletService.csproj" />
+  <Project Path="ZyntraPay.IntegrationTests/ZyntraPay.IntegrationTests.csproj" />
 </Solution>

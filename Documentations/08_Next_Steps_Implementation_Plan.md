@@ -5,6 +5,24 @@ This document defines what must be implemented next to complete the case study a
 
 ---
 
+## 0) Current Backend Snapshot (Updated)
+
+### Completed / In Place
+- Core microservices implemented: `AuthService`, `UserService`, `WalletService`, `RewardsService`, `NotificationService`, `AdminService`, `ApiGateway`.
+- Unit test projects implemented for: `AuthService`, `UserService`, `WalletService`, `RewardsService`.
+- Integration tests implemented for key auth/wallet flows.
+- `Forgot Password`, `Reset Password`, and `Refresh Token` flows implemented in `AuthService`.
+- Polly resilience implemented in `AdminService` downstream HTTP clients.
+- Rewards catalog caching implemented.
+- Global exception middleware and logging implemented across services.
+
+### Pending / Partial
+- `AdminService` unit test project needs final wiring into active solution + execution evidence.
+- Coverage is currently below target; service-layer coverage needs to be improved.
+- Angular frontend implementation pending.
+
+---
+
 ## 1) Highest Priority (Must Complete)
 
 ## 1.1 Testing (Backend)
@@ -16,6 +34,8 @@ Create test projects and cover core business logic:
   - register success/failure (duplicate email/phone)
   - login success/failure
   - admin register secret validation
+  - forgot/reset password rules
+  - refresh-token success/failure
 - `UserService`:
   - profile create/get
   - KYC submit/get
@@ -104,6 +124,8 @@ Add caching for read-heavy endpoints:
 - Add stricter password policy checks
 - Add claims-based policy examples
 - Secure secrets for non-dev environments
+- Avoid returning raw exception details in production responses
+- Add OTP/reset attempt throttling and lockout strategy
 
 ---
 
@@ -134,13 +156,13 @@ Add caching for read-heavy endpoints:
 
 ---
 
-## 5) Suggested Execution Order
+## 5) Suggested Execution Order (Backend-First Updated)
 
-1. Create backend test projects and add core unit tests
-2. Add integration tests for critical APIs
-3. Complete Angular modules and gateway integration
-4. Add SonarLint fixes and quality pass
-5. Add Polly + caching
+1. Finalize `AdminService` unit test wiring and execution proof
+2. Increase service-layer coverage (focus auth reset/refresh + admin orchestration)
+3. Add integration tests for admin downstream flow
+4. Apply security hardening quick wins
+5. Start Angular modules and gateway integration
 6. Add Docker + CI/CD
 7. Final documentation and viva preparation
 

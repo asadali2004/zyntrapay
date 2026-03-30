@@ -9,6 +9,8 @@
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
+    <File Path="Case Study Guideline.docx" />
+    <File Path="Digital_Wallet_and_Rewards_Loyalty_System_Blueprint.docx" />
     <File Path="Documentations/08_Next_Steps_Implementation_Plan.md" />
     <File Path="README.md" />
   </Folder>
@@ -20,6 +22,7 @@
   <Project Path="RewardsService.Tests/RewardsService.Tests.csproj" />
   <Project Path="RewardsService/RewardsService.csproj" />
   <Project Path="Shared.Events/Shared.Events.csproj" />
+  <Project Path="UserService.Tests/UserService.Tests.csproj" />
   <Project Path="UserService/UserService.csproj" />
   <Project Path="WalletService.Tests/WalletService.Tests.csproj" />
   <Project Path="WalletService/WalletService.csproj" />

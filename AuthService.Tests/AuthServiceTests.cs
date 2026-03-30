@@ -369,4 +369,200 @@ public class AuthServiceTests
         Assert.That(success, Is.False);
         Assert.That(message, Does.Contain("expired"));
     }
+
+    // ── FORGOT/RESET PASSWORD TESTS ───────────────────────────────────────
+
+    [Test]
+    public async Task ForgotPassword_WithExistingEmail_ReturnsTrue()
+    {
+        // Arrange
+        _repoMock.Setup(r => r.GetByEmailAsync("john@example.com")).ReturnsAsync(new User
+        {
+            Id = 1,
+            Email = "john@example.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Test@123"),
+            Role = "User",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        var dto = new ForgotPasswordRequestDto { Email = "john@example.com" };
+
+        // Act
+        var (success, message) = await _authService.ForgotPasswordAsync(dto);
+
+        // Assert
+        Assert.That(success, Is.True);
+        Assert.That(message, Does.Contain("reset OTP").IgnoreCase);
+        _publisherMock.Verify(p => p.Publish(It.IsAny<OtpRequestedEvent>()), Times.Once);
+    }
+
+    [Test]
+    public async Task ForgotPassword_WithUnknownEmail_ReturnsTrueWithoutPublish()
+    {
+        // Arrange
+        _repoMock.Setup(r => r.GetByEmailAsync("nobody@example.com"))
+            .ReturnsAsync((User?)null);
+
+        var dto = new ForgotPasswordRequestDto { Email = "nobody@example.com" };
+
+        // Act
+        var (success, message) = await _authService.ForgotPasswordAsync(dto);
+
+        // Assert
+        Assert.That(success, Is.True);
+        Assert.That(message, Does.Contain("If this email is registered"));
+        _publisherMock.Verify(p => p.Publish(It.IsAny<OtpRequestedEvent>()), Times.Never);
+    }
+
+    [Test]
+    public async Task ResetPassword_WithExpiredOtp_ReturnsFalse()
+    {
+        // Arrange
+        var dto = new ResetPasswordRequestDto
+        {
+            Email = "john@example.com",
+            Otp = "123456",
+            NewPassword = "NewPass123"
+        };
+
+        // Act
+        var (success, message) = await _authService.ResetPasswordAsync(dto);
+
+        // Assert
+        Assert.That(success, Is.False);
+        Assert.That(message, Does.Contain("expired or not found"));
+    }
+
+    [Test]
+    public async Task ResetPassword_WithWrongOtp_ReturnsFalse()
+    {
+        // Arrange
+        _cache.Set("reset_otp_john@example.com", "123456", TimeSpan.FromMinutes(10));
+
+        var dto = new ResetPasswordRequestDto
+        {
+            Email = "john@example.com",
+            Otp = "999999",
+            NewPassword = "NewPass123"
+        };
+
+        // Act
+        var (success, message) = await _authService.ResetPasswordAsync(dto);
+
+        // Assert
+        Assert.That(success, Is.False);
+        Assert.That(message, Does.Contain("Invalid OTP"));
+    }
+
+    [Test]
+    public async Task ResetPassword_WithValidOtp_UpdatesPassword()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = 1,
+            Email = "john@example.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("OldPass123"),
+            Role = "User",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _cache.Set("reset_otp_john@example.com", "123456", TimeSpan.FromMinutes(10));
+        _repoMock.Setup(r => r.GetByEmailAsync("john@example.com")).ReturnsAsync(user);
+        _repoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+
+        var dto = new ResetPasswordRequestDto
+        {
+            Email = "john@example.com",
+            Otp = "123456",
+            NewPassword = "NewPass123"
+        };
+
+        // Act
+        var (success, message) = await _authService.ResetPasswordAsync(dto);
+
+        // Assert
+        Assert.That(success, Is.True);
+        Assert.That(message, Does.Contain("successful"));
+        Assert.That(BCrypt.Net.BCrypt.Verify("NewPass123", user.PasswordHash), Is.True);
+    }
+
+    // ── REFRESH TOKEN TESTS ───────────────────────────────────────────────
+
+    [Test]
+    public async Task RefreshToken_WithInvalidToken_ReturnsFalse()
+    {
+        // Arrange
+        var dto = new RefreshTokenRequestDto { RefreshToken = "invalid_token" };
+
+        // Act
+        var (success, data, message) = await _authService.RefreshTokenAsync(dto);
+
+        // Assert
+        Assert.That(success, Is.False);
+        Assert.That(data, Is.Null);
+        Assert.That(message, Does.Contain("Invalid or expired refresh token"));
+    }
+
+    [Test]
+    public async Task RefreshToken_WithValidToken_ReturnsNewAuthResponse()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = 1,
+            Email = "john@example.com",
+            PhoneNumber = "9876543210",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Test@123"),
+            Role = "User",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _cache.Set("refresh_token_test_refresh", 1, TimeSpan.FromMinutes(10));
+        _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+
+        var dto = new RefreshTokenRequestDto { RefreshToken = "test_refresh" };
+
+        // Act
+        var (success, data, message) = await _authService.RefreshTokenAsync(dto);
+
+        // Assert
+        Assert.That(success, Is.True);
+        Assert.That(data, Is.Not.Null);
+        Assert.That(data!.Token, Is.Not.Empty);
+        Assert.That(data.RefreshToken, Is.Not.Empty);
+        Assert.That(message, Does.Contain("refreshed"));
+    }
+
+    [Test]
+    public async Task RefreshToken_WithInactiveUser_ReturnsFalse()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = 1,
+            Email = "john@example.com",
+            PhoneNumber = "9876543210",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Test@123"),
+            Role = "User",
+            IsActive = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _cache.Set("refresh_token_test_refresh", 1, TimeSpan.FromMinutes(10));
+        _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+
+        var dto = new RefreshTokenRequestDto { RefreshToken = "test_refresh" };
+
+        // Act
+        var (success, data, message) = await _authService.RefreshTokenAsync(dto);
+
+        // Assert
+        Assert.That(success, Is.False);
+        Assert.That(data, Is.Null);
+        Assert.That(message, Does.Contain("inactive"));
+    }
 }

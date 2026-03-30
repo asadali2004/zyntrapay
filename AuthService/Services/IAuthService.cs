@@ -14,4 +14,7 @@ public interface IAuthService
     Task<(bool Success, string Message)> SendOtpAsync(SendOtpRequestDto dto);
     Task<(bool Success, string Message)> VerifyOtpAsync(VerifyOtpRequestDto dto);
     Task<(bool Success, string Message)> UpdatePhoneAsync(int userId, UpdatePhoneDto dto);
+    Task<(bool Success, string Message)> ForgotPasswordAsync(ForgotPasswordRequestDto dto);
+    Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordRequestDto dto);
+    Task<(bool Success, AuthResponseDto? Data, string Message)> RefreshTokenAsync(RefreshTokenRequestDto dto);
 }

@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Shared.Events;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace AuthService.Services;
@@ -159,7 +160,8 @@ public class AuthServiceImpl : IAuthService
     {
         _logger.LogInformation("Login attempt for email: {Email}", dto.Email); 
 
-        var user = await _repo.GetByEmailAsync(dto.Email);
+        var normalizedEmail = dto.Email.ToLower();
+        var user = await _repo.GetByEmailAsync(normalizedEmail);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
         {
@@ -170,16 +172,8 @@ public class AuthServiceImpl : IAuthService
         if (!user.IsActive)
             return (false, null, "Account is deactivated.");
 
-        var token = GenerateToken(user);
-
         _logger.LogInformation("Login successful for email: {Email}", dto.Email); 
-        return (true, new AuthResponseDto
-        {
-            Token = token,
-            Email = user.Email,
-            Role = user.Role,
-            PhoneUpdateRequired = IsTemporaryPhone(user.PhoneNumber)
-        }, "Login successful.");
+        return (true, BuildAuthResponse(user), "Login successful.");
     }
 
     public async Task<(bool Success, AuthResponseDto? Data, string Message)> GoogleLoginAsync(
@@ -203,16 +197,8 @@ public class AuthServiceImpl : IAuthService
                 if (!existingUser.IsActive)
                     return (false, null, "Account is deactivated.");
 
-                var token = GenerateToken(existingUser);
                 _logger.LogInformation("Google login successful for: {Email}", normalizedEmail);
-
-                return (true, new AuthResponseDto
-                {
-                    Token = token,
-                    Email = existingUser.Email,
-                    Role = existingUser.Role,
-                    PhoneUpdateRequired = IsTemporaryPhone(existingUser.PhoneNumber)
-                }, "Login successful.");
+                return (true, BuildAuthResponse(existingUser), "Login successful.");
             }
 
             var temporaryPhone = await GenerateUniqueTemporaryPhoneAsync();
@@ -235,22 +221,75 @@ public class AuthServiceImpl : IAuthService
                 Timestamp = DateTime.UtcNow
             });
 
-            var newToken = GenerateToken(newUser);
             _logger.LogInformation("New user auto-registered via Google: {Email}", normalizedEmail);
 
-            return (true, new AuthResponseDto
-            {
-                Token = newToken,
-                Email = newUser.Email,
-                Role = newUser.Role,
-                PhoneUpdateRequired = true
-            }, "Registration via Google successful.");
+            var response = BuildAuthResponse(newUser);
+            response.PhoneUpdateRequired = true;
+            return (true, response, "Registration via Google successful.");
         }
         catch (InvalidJwtException ex)
         {
             _logger.LogWarning("Invalid Google token: {Message}", ex.Message);
             return (false, null, "Invalid Google token. Please try again.");
         }
+    }
+
+    public async Task<(bool Success, string Message)> ForgotPasswordAsync(ForgotPasswordRequestDto dto)
+    {
+        var normalizedEmail = dto.Email.ToLower();
+        var user = await _repo.GetByEmailAsync(normalizedEmail);
+
+        if (user != null)
+        {
+            var otp = Random.Shared.Next(100000, 999999).ToString();
+            _cache.Set($"reset_otp_{normalizedEmail}", otp, TimeSpan.FromMinutes(10));
+
+            _publisher.Publish(new OtpRequestedEvent
+            {
+                Email = normalizedEmail,
+                Otp = otp,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+
+        return (true, "If this email is registered, a reset OTP has been sent.");
+    }
+
+    public async Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordRequestDto dto)
+    {
+        var normalizedEmail = dto.Email.ToLower();
+        var cacheKey = $"reset_otp_{normalizedEmail}";
+
+        if (!_cache.TryGetValue(cacheKey, out string? storedOtp))
+            return (false, "OTP expired or not found. Please request a new reset OTP.");
+
+        if (storedOtp != dto.Otp)
+            return (false, "Invalid OTP.");
+
+        var user = await _repo.GetByEmailAsync(normalizedEmail);
+        if (user == null)
+            return (false, "User not found.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        await _repo.SaveChangesAsync();
+
+        _cache.Remove(cacheKey);
+        RevokeUserRefreshToken(user.Id);
+
+        return (true, "Password reset successful.");
+    }
+
+    public async Task<(bool Success, AuthResponseDto? Data, string Message)> RefreshTokenAsync(RefreshTokenRequestDto dto)
+    {
+        if (!_cache.TryGetValue($"refresh_token_{dto.RefreshToken}", out int userId))
+            return (false, null, "Invalid or expired refresh token.");
+
+        var user = await _repo.GetByIdAsync(userId);
+        if (user == null || !user.IsActive)
+            return (false, null, "User not found or inactive.");
+
+        _cache.Remove($"refresh_token_{dto.RefreshToken}");
+        return (true, BuildAuthResponse(user), "Token refreshed successfully.");
     }
 
     public async Task<(bool Success, string Message)> UpdatePhoneAsync(int userId, UpdatePhoneDto dto)
@@ -304,6 +343,38 @@ public class AuthServiceImpl : IAuthService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private AuthResponseDto BuildAuthResponse(User user)
+        => new()
+        {
+            Token = GenerateToken(user),
+            RefreshToken = IssueRefreshToken(user.Id),
+            Email = user.Email,
+            Role = user.Role,
+            PhoneUpdateRequired = IsTemporaryPhone(user.PhoneNumber)
+        };
+
+    private string IssueRefreshToken(int userId)
+    {
+        RevokeUserRefreshToken(userId);
+
+        var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var expiry = TimeSpan.FromDays(7);
+
+        _cache.Set($"refresh_token_{refreshToken}", userId, expiry);
+        _cache.Set($"user_refresh_{userId}", refreshToken, expiry);
+
+        return refreshToken;
+    }
+
+    private void RevokeUserRefreshToken(int userId)
+    {
+        if (_cache.TryGetValue($"user_refresh_{userId}", out string? existingToken))
+        {
+            _cache.Remove($"refresh_token_{existingToken}");
+            _cache.Remove($"user_refresh_{userId}");
+        }
     }
 
     public async Task<List<UserSummaryDto>> GetAllUsersAsync()

@@ -8,6 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="coverlet.collector" Version="8.0.1">
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		  <PrivateAssets>all</PrivateAssets>
+		</PackageReference>
 		<PackageReference Include="NUnit" Version="4.1.0" />
 		<PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
@@ -22,6 +26,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\AuthService\AuthService.csproj" />
 		<ProjectReference Include="..\WalletService\WalletService.csproj" />
+		<ProjectReference Include="..\AdminService\AdminService.csproj" />
 		<ProjectReference Include="..\Shared.Events\Shared.Events.csproj" />
 	</ItemGroup>
 

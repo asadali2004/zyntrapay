@@ -2,6 +2,17 @@
 bin/
 obj/
 
+# Test and coverage outputs
+TestResults/
+coverage-report/
+*.cobertura.xml
+*.coverage
+*.coveragexml
+
+# Logs
+logs/
+*.log
+
 # Visual Studio
 .vs/
 *.user

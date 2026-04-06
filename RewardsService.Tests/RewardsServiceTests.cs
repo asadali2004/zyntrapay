@@ -76,6 +76,97 @@ public class RewardsServiceTests
         Assert.That(TierHelper.CalculatePointsToEarn(500m), Is.EqualTo(5));
     }
 
+    // ── SUMMARY TESTS ─────────────────────────────────────────────────────
+
+    [Test]
+    public async Task GetSummary_AccountNotFound_ReturnsFalse()
+    {
+        _repoMock.Setup(r => r.GetAccountByAuthUserIdAsync(99))
+            .ReturnsAsync((RewardAccount?)null);
+
+        var (success, data, message) = await _rewardsService.GetSummaryAsync(99);
+
+        Assert.That(success, Is.False);
+        Assert.That(data, Is.Null);
+        Assert.That(message, Does.Contain("not found"));
+    }
+
+    [Test]
+    public async Task GetSummary_AccountExists_ReturnsData()
+    {
+        _repoMock.Setup(r => r.GetAccountByAuthUserIdAsync(1))
+            .ReturnsAsync(new RewardAccount { AuthUserId = 1, TotalPoints = 1200, Tier = "Gold" });
+
+        var (success, data, _) = await _rewardsService.GetSummaryAsync(1);
+
+        Assert.That(success, Is.True);
+        Assert.That(data, Is.Not.Null);
+        Assert.That(data!.AuthUserId, Is.EqualTo(1));
+        Assert.That(data.TotalPoints, Is.EqualTo(1200));
+        Assert.That(data.Tier, Is.EqualTo("Gold"));
+    }
+
+    // ── CATALOG TESTS ─────────────────────────────────────────────────────
+
+    [Test]
+    public async Task GetCatalog_FirstCall_FetchesFromRepo_SecondCall_UsesCache()
+    {
+        var items = new List<RewardCatalog>
+        {
+            new() { Id = 1, Title = "Voucher", Description = "Gift", PointsCost = 100, Stock = 10, IsActive = true }
+        };
+
+        _repoMock.Setup(r => r.GetActiveCatalogAsync()).ReturnsAsync(items);
+
+        var (success1, data1, _) = await _rewardsService.GetCatalogAsync();
+        var (success2, data2, _) = await _rewardsService.GetCatalogAsync();
+
+        Assert.That(success1, Is.True);
+        Assert.That(success2, Is.True);
+        Assert.That(data1, Is.Not.Null);
+        Assert.That(data2, Is.Not.Null);
+        Assert.That(data2!.Count, Is.EqualTo(1));
+
+        _repoMock.Verify(r => r.GetActiveCatalogAsync(), Times.Once);
+    }
+
+    // ── HISTORY TESTS ─────────────────────────────────────────────────────
+
+    [Test]
+    public async Task GetHistory_MapsRewardTitle_WithFallbackForNullCatalog()
+    {
+        var redemptions = new List<Redemption>
+        {
+            new()
+            {
+                Id = 1,
+                AuthUserId = 1,
+                PointsSpent = 100,
+                RedeemedAt = DateTime.UtcNow,
+                RewardCatalog = new RewardCatalog { Title = "Amazon Voucher" }
+            },
+            new()
+            {
+                Id = 2,
+                AuthUserId = 1,
+                PointsSpent = 50,
+                RedeemedAt = DateTime.UtcNow,
+                RewardCatalog = null
+            }
+        };
+
+        _repoMock.Setup(r => r.GetRedemptionsByAuthUserIdAsync(1)).ReturnsAsync(redemptions);
+
+        var (success, data, message) = await _rewardsService.GetHistoryAsync(1);
+
+        Assert.That(success, Is.True);
+        Assert.That(message, Does.Contain("History fetched"));
+        Assert.That(data, Is.Not.Null);
+        Assert.That(data!.Count, Is.EqualTo(2));
+        Assert.That(data[0].RewardTitle, Is.EqualTo("Amazon Voucher"));
+        Assert.That(data[1].RewardTitle, Is.EqualTo("Unknown"));
+    }
+
     // ── AWARD POINTS TESTS ────────────────────────────────────────────────
 
     [Test]
@@ -118,6 +209,16 @@ public class RewardsServiceTests
         // Assert
         Assert.That(account.TotalPoints, Is.EqualTo(1000));
         Assert.That(account.Tier, Is.EqualTo("Gold"));
+    }
+
+    [Test]
+    public async Task AwardPoints_ZeroAmount_DoesNothing()
+    {
+        await _rewardsService.AwardPointsAsync(1, 0m);
+
+        _repoMock.Verify(r => r.GetAccountByAuthUserIdAsync(It.IsAny<int>()), Times.Never);
+        _repoMock.Verify(r => r.SaveChangesAsync(), Times.Never);
+        _publisherMock.Verify(p => p.Publish(It.IsAny<PointsAwardedEvent>()), Times.Never);
     }
 
     // ── REDEEM TESTS ──────────────────────────────────────────────────────
@@ -256,5 +357,53 @@ public class RewardsServiceTests
         // Assert
         Assert.That(success, Is.False);
         Assert.That(message, Does.Contain("not found or inactive"));
+    }
+
+    [Test]
+    public async Task Redeem_AccountNotFound_ReturnsFalse()
+    {
+        _repoMock.Setup(r => r.GetAccountByAuthUserIdAsync(1))
+            .ReturnsAsync((RewardAccount?)null);
+
+        var dto = new RedeemRequestDto { RewardCatalogId = 1 };
+
+        var (success, message) = await _rewardsService.RedeemAsync(1, dto);
+
+        Assert.That(success, Is.False);
+        Assert.That(message, Does.Contain("account not found"));
+    }
+
+    [Test]
+    public async Task Redeem_LimitedStock_DecrementsStock()
+    {
+        var account = new RewardAccount
+        {
+            Id = 1,
+            AuthUserId = 1,
+            TotalPoints = 500,
+            Tier = "Silver"
+        };
+
+        var catalogItem = new RewardCatalog
+        {
+            Id = 1,
+            Title = "Movie Ticket",
+            PointsCost = 100,
+            Stock = 3,
+            IsActive = true
+        };
+
+        _repoMock.Setup(r => r.GetAccountByAuthUserIdAsync(1)).ReturnsAsync(account);
+        _repoMock.Setup(r => r.GetCatalogItemByIdAsync(1)).ReturnsAsync(catalogItem);
+        _repoMock.Setup(r => r.AddRedemptionAsync(It.IsAny<Redemption>())).Returns(Task.CompletedTask);
+        _repoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+
+        var dto = new RedeemRequestDto { RewardCatalogId = 1 };
+
+        var (success, _) = await _rewardsService.RedeemAsync(1, dto);
+
+        Assert.That(success, Is.True);
+        Assert.That(catalogItem.Stock, Is.EqualTo(2));
+        Assert.That(account.TotalPoints, Is.EqualTo(400));
     }
 }

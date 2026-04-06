@@ -23,65 +23,89 @@ public class WalletTopUpConsumer : BackgroundService
         _scopeFactory = scopeFactory;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = _config["RabbitMQ:Host"] ?? "localhost",
-            UserName = _config["RabbitMQ:Username"] ?? "guest",
-            Password = _config["RabbitMQ:Password"] ?? "guest"
-        };
-
-        var connection = factory.CreateConnection();
-        var channel = connection.CreateModel();
-        var queueName = nameof(WalletTopUpCompletedEvent);
-
-        channel.QueueDeclare(
-            queue: queueName,
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null);
-
-        var consumer = new EventingBasicConsumer(channel);
-
-        consumer.Received += async (model, ea) =>
+        while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                var body = ea.Body.ToArray();
-                var json = Encoding.UTF8.GetString(body);
-                var @event = JsonSerializer.Deserialize<WalletTopUpCompletedEvent>(json);
-
-                if (@event != null)
+                var factory = new ConnectionFactory
                 {
-                    _logger.LogInformation("Received WalletTopUpCompleted for AuthUserId: {Id}",
-                        @event.AuthUserId);
+                    HostName = _config["RabbitMQ:Host"] ?? "localhost",
+                    UserName = _config["RabbitMQ:Username"] ?? "guest",
+                    Password = _config["RabbitMQ:Password"] ?? "guest"
+                };
 
-                    // Use scope because IRewardsService is Scoped, BackgroundService is Singleton
-                    using var scope = _scopeFactory.CreateScope();
-                    var rewardsService = scope.ServiceProvider
-                        .GetRequiredService<IRewardsService>();
+                var connection = factory.CreateConnection();
+                var channel = connection.CreateModel();
+                var queueName = nameof(WalletTopUpCompletedEvent);
+                var dlqName = $"{queueName}.dlq";
 
-                    await rewardsService.AwardPointsAsync(@event.AuthUserId, @event.Amount);
-                }
+                var queueArgs = new Dictionary<string, object>
+                {
+                    ["x-dead-letter-exchange"] = "",
+                    ["x-dead-letter-routing-key"] = dlqName
+                };
 
-                channel.BasicAck(ea.DeliveryTag, false);
+                channel.QueueDeclare(
+                    queue: queueName,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: queueArgs);
+
+                channel.QueueDeclare(
+                    queue: dlqName,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+
+                var consumer = new EventingBasicConsumer(channel);
+
+                consumer.Received += async (model, ea) =>
+                {
+                    try
+                    {
+                        var body = ea.Body.ToArray();
+                        var json = Encoding.UTF8.GetString(body);
+                        var @event = JsonSerializer.Deserialize<WalletTopUpCompletedEvent>(json);
+
+                        if (@event != null)
+                        {
+                            _logger.LogInformation("Received WalletTopUpCompleted for AuthUserId: {Id}",
+                                @event.AuthUserId);
+
+                            using var scope = _scopeFactory.CreateScope();
+                            var rewardsService = scope.ServiceProvider
+                                .GetRequiredService<IRewardsService>();
+
+                            await rewardsService.AwardPointsAsync(@event.AuthUserId, @event.Amount);
+                        }
+
+                        channel.BasicAck(ea.DeliveryTag, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error processing WalletTopUpCompleted event. Sending message to DLQ.");
+                        channel.BasicNack(ea.DeliveryTag, false, requeue: false);
+                    }
+                };
+
+                channel.BasicConsume(
+                    queue: queueName,
+                    autoAck: false,
+                    consumer: consumer);
+
+                _logger.LogInformation("WalletTopUpConsumer started, listening on queue: {Queue}", queueName);
+                await Task.Delay(Timeout.Infinite, stoppingToken);
+                break;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogError(ex, "Error processing WalletTopUpCompleted event");
-                channel.BasicNack(ea.DeliveryTag, false, requeue: true);
+                _logger.LogWarning("RabbitMQ unavailable. Retrying in 5s... {Message}", ex.Message);
+                await Task.Delay(5000, stoppingToken);
             }
-        };
-
-        channel.BasicConsume(
-            queue: queueName,
-            autoAck: false,
-            consumer: consumer);
-
-        _logger.LogInformation("WalletTopUpConsumer started, listening on queue: {Queue}", queueName);
-
-        return Task.CompletedTask;
+        }
     }
 }

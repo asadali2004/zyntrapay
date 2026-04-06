@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZyntraPay API Docs - Intacct Style</title>
+  <link rel="stylesheet" href="api-docs-intacct-style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>ZyntraPay API Docs</h1>
+      <a href="#overview">Overview</a>
+      <a href="#auth">Auth Service</a>
+      <a href="#user">User Service</a>
+      <a href="#wallet">Wallet Service</a>
+      <a href="#rewards">Rewards Service</a>
+      <a href="#notification">Notification Service</a>
+      <a href="#admin">Admin Service</a>
+      <a href="#errors">Error Format</a>
+    </aside>
+
+    <main class="content">
+      <section id="overview" class="header-card">
+        <h2>ZyntraPay - Intacct-Style API Reference</h2>
+        <div class="meta">
+          <div><strong>Framework:</strong> .NET 8 Web API</div>
+          <div><strong>Architecture:</strong> Microservices + Ocelot</div>
+          <div><strong>Gateway:</strong> <code>http://localhost:5000/gateway</code></div>
+          <div><strong>Auth:</strong> JWT Bearer</div>
+        </div>
+        <p class="muted">This version uses endpoint cards with request schema, response examples, and consistent auth/status guidance.</p>
+      </section>
+
+      <section class="note">
+        <h3>Common Request Headers</h3>
+        <pre>Content-Type: application/json
+Authorization: Bearer {token} // for protected endpoints</pre>
+      </section>
+
+      <section id="auth">
+        <h2>Auth Service</h2>
+
+        <article class="endpoint">
+          <h3><span class="badge post">POST</span><span class="path">/gateway/auth/register</span></h3>
+          <p><strong>Auth:</strong> Public</p>
+          <div class="grid-2">
+            <div>
+              <strong>Request Fields</strong>
+              <table>
+                <tr><th>Field</th><th>Type</th><th>Required</th></tr>
+                <tr><td>email</td><td>string</td><td>Yes</td></tr>
+                <tr><td>phoneNumber</td><td>string</td><td>Yes</td></tr>
+                <tr><td>password</td><td>string</td><td>Yes</td></tr>
+              </table>
+              <pre>{
+  "email": "john.doe@example.com",
+  "phoneNumber": "9876543210",
+  "password": "SecurePass123!"
+}</pre>
+            </div>
+            <div>
+              <strong>Success Response (200)</strong>
+              <pre>{
+  "message": "User registered successfully"
+}</pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="endpoint">
+          <h3><span class="badge post">POST</span><span class="path">/gateway/auth/login</span></h3>
+          <p><strong>Auth:</strong> Public</p>
+          <div class="grid-2">
+            <div>
+              <strong>Request</strong>
+              <pre>{
+  "email": "john.doe@example.com",
+  "password": "SecurePass123!"
+}</pre>
+            </div>
+            <div>
+              <strong>Success Response (200)</strong>
+              <pre>{
+  "token": "jwt-token",
+  "refreshToken": "refresh-token",
+  "email": "john.doe@example.com",
+  "role": "User",
+  "phoneUpdateRequired": false
+}</pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="endpoint">
+          <h3><span class="badge put">PUT</span><span class="path">/gateway/auth/update-phone</span></h3>
+          <p><strong>Auth:</strong> User</p>
+          <div class="grid-2">
+            <div>
+              <strong>Request</strong>
+              <pre>{
+  "phoneNumber": "9123456789"
+}</pre>
+            </div>
+            <div>
+              <strong>Success Response (200)</strong>
+              <pre>{
+  "message": "Phone number updated successfully"
+}</pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="endpoint">
+          <h3><span class="badge get">GET</span><span class="path">/gateway/auth/admin/users</span></h3>
+          <p><strong>Auth:</strong> Admin</p>
+          <pre>[
+  {
+    "id": 1,
+    "email": "john.doe@example.com",
+    "phoneNumber": "9876543210",
+    "role": "User",
+    "isActive": true,
+    "createdAt": "2026-03-31T10:00:00Z"
+  }
+]</pre>
+        </article>
+      </section>
+
+      <section id="user">
+        <h2>User Service</h2>
+        <article class="endpoint">
+          <h3><span class="badge post">POST</span><span class="path">/gateway/user/profile</span></h3>
+          <p><strong>Auth:</strong> User</p>
+          <div class="grid-2">
+            <pre>{
+  "fullName": "John Doe",
+  "dateOfBirth": "1995-06-15T00:00:00",
+  "address": "123 Main Street",
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "pinCode": "400001"
+}</pre>
+            <pre>{
+  "message": "Profile created successfully"
+}</pre>
+          </div>
+        </article>
+        <article class="endpoint">
+          <h3><span class="badge post">POST</span><span class="path">/gateway/user/kyc</span></h3>
+          <p><strong>Auth:</strong> User</p>
+          <div class="grid-2">
+            <pre>{
+  "documentType": "Aadhaar",
+  "documentNumber": "123456789012"
+}</pre>
+            <pre>{
+  "message": "KYC submitted successfully"
+}</pre>
+          </div>
+        </article>
+      </section>
+
+      <section id="wallet">
+        <h2>Wallet Service</h2>
+        <article class="endpoint">
+          <h3><span class="badge post">POST</span><span class="path">/gateway/wallet/topup</span></h3>
+          <p><strong>Auth:</strong> User</p>
+          <div class="grid-2">
+            <pre>{
+  "amount": 1000.00,
+  "description": "Wallet Top-Up"
+}</pre>
+            <pre>{
+  "message": "Wallet top-up successful"
+}</pre>
+          </div>
+        </article>
+        <article class="endpoint">
+          <h3><span class="badge post">POST</span><span class="path">/gateway/wallet/transfer</span></h3>
+          <p><strong>Auth:</strong> User</p>
+          <div class="grid-2">
+            <pre>{
+  "receiverAuthUserId": 2,
+  "receiverEmail": "receiver@example.com",
+  "amount": 500.00,
+  "description": "Fund Transfer"
+}</pre>
+            <pre>{
+  "message": "Transfer successful"
+}</pre>
+          </div>
+        </article>
+      </section>
+
+      <section id="rewards">
+        <h2>Rewards Service</h2>
+        <article class="endpoint">
+          <h3><span class="badge post">POST</span><span class="path">/gateway/rewards/redeem</span></h3>
+          <p><strong>Auth:</strong> User</p>
+          <div class="grid-2">
+            <pre>{
+  "rewardCatalogId": 1
+}</pre>
+            <pre>{
+  "message": "Reward redeemed successfully"
+}</pre>
+          </div>
+        </article>
+      </section>
+
+      <section id="notification">
+        <h2>Notification Service</h2>
+        <article class="endpoint">
+          <h3><span class="badge get">GET</span><span class="path">/gateway/notification</span></h3>
+          <p><strong>Auth:</strong> User</p>
+          <pre>[
+  {
+    "id": 1,
+    "title": "Wallet Top-Up",
+    "message": "Your wallet was credited with ₹1000",
+    "isRead": false,
+    "createdAt": "2026-03-31T10:00:00Z"
+  }
+]</pre>
+        </article>
+      </section>
+
+      <section id="admin">
+        <h2>Admin Service</h2>
+        <article class="endpoint">
+          <h3><span class="badge put">PUT</span><span class="path">/gateway/admin/kyc/{kycId}/review</span></h3>
+          <p><strong>Auth:</strong> Admin</p>
+          <div class="grid-2">
+            <pre>{
+  "status": "Approved",
+  "rejectionReason": null
+}</pre>
+            <pre>{
+  "message": "KYC reviewed successfully"
+}</pre>
+          </div>
+        </article>
+        <article class="endpoint">
+          <h3><span class="badge get">GET</span><span class="path">/gateway/admin/dashboard</span></h3>
+          <p><strong>Auth:</strong> Admin</p>
+          <pre>{
+  "totalUsers": 25,
+  "activeUsers": 20,
+  "pendingKyc": 4,
+  "approvedKyc": 18,
+  "rejectedKyc": 3
+}</pre>
+        </article>
+      </section>
+
+      <section id="errors" class="table-wrap">
+        <h2>Standard Error Response Format</h2>
+        <table>
+          <tr><th>Status</th><th>When</th><th>Example</th></tr>
+          <tr><td>400</td><td>Validation/Business rule failure</td><td><code>{"message":"Invalid request"}</code></td></tr>
+          <tr><td>401</td><td>Missing/invalid token</td><td><code>{"message":"Unauthorized"}</code></td></tr>
+          <tr><td>403</td><td>Role not allowed</td><td><code>{"message":"Forbidden"}</code></td></tr>
+          <tr><td>404</td><td>Resource not found</td><td><code>{"message":"Not found"}</code></td></tr>
+          <tr><td>500</td><td>Unhandled server error</td><td><code>{"message":"An error occurred"}</code></td></tr>
+        </table>
+      </section>
+
+      <section class="note">
+        <small>Source of truth for payloads remains <code>Documentations/13_Complete_API_Endpoints_Reference.md</code> and DTO/controller contracts in services.</small>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

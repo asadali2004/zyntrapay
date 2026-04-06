@@ -19,6 +19,8 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.5" />
 		<PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
+		<PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	</ItemGroup>
 

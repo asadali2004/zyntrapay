@@ -18,6 +18,7 @@ public class JwtSettings
     public string SecretKey { get; set; } = string.Empty;
     public string Issuer { get; set; } = string.Empty;
     public string Audience { get; set; } = string.Empty;
+    public List<string> Audiences { get; set; } = new();
     public int ExpiryMinutes { get; set; }
 }
 
@@ -327,22 +328,36 @@ public class AuthServiceImpl : IAuthService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.SecretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role)
         };
+
+        foreach (var audience in GetTokenAudiences())
+        {
+            claims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
+        }
 
         var token = new JwtSecurityToken(
             issuer: _jwt.Issuer,
-            audience: _jwt.Audience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(_jwt.ExpiryMinutes),
             signingCredentials: creds
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private IEnumerable<string> GetTokenAudiences()
+    {
+        if (_jwt.Audiences is { Count: > 0 })
+            return _jwt.Audiences.Where(a => !string.IsNullOrWhiteSpace(a)).Distinct();
+
+        return string.IsNullOrWhiteSpace(_jwt.Audience)
+            ? []
+            : [_jwt.Audience];
     }
 
     private AuthResponseDto BuildAuthResponse(User user)

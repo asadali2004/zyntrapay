@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using AuthService.Exceptions;
+using System.Net;
 using System.Text.Json;
 
 namespace AuthService.Middleware;
@@ -29,13 +30,24 @@ public class GlobalExceptionMiddleware
 
     private static Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
+        var statusCode = ex switch
+        {
+            AppException appException => appException.StatusCode,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            KeyNotFoundException => StatusCodes.Status404NotFound,
+            ArgumentException => StatusCodes.Status400BadRequest,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        context.Response.StatusCode = statusCode;
 
         var response = new
         {
-            statusCode = context.Response.StatusCode,
-            message = "An unexpected error occurred. Please try again later.",
+            statusCode,
+            message = statusCode == StatusCodes.Status500InternalServerError
+                ? "An unexpected error occurred. Please try again later."
+                : ex.Message,
             detail = ex.Message
         };
 

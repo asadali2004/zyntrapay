@@ -39,8 +39,18 @@ public class KycStatusChangedConsumer : BackgroundService
                 var connection = factory.CreateConnection();
                 var channel = connection.CreateModel();
                 var queueName = nameof(KycStatusChangedEvent);
+                var dlqName = $"{queueName}.dlq";
+
+                var queueArgs = new Dictionary<string, object>
+                {
+                    ["x-dead-letter-exchange"] = "",
+                    ["x-dead-letter-routing-key"] = dlqName
+                };
 
                 channel.QueueDeclare(queue: queueName, durable: true,
+                    exclusive: false, autoDelete: false, arguments: queueArgs);
+
+                channel.QueueDeclare(queue: dlqName, durable: true,
                     exclusive: false, autoDelete: false, arguments: null);
 
                 var consumer = new EventingBasicConsumer(channel);
@@ -82,8 +92,8 @@ public class KycStatusChangedConsumer : BackgroundService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error processing KycStatusChanged");
-                        channel.BasicNack(ea.DeliveryTag, false, requeue: true);
+                        _logger.LogError(ex, "Error processing KycStatusChanged. Sending message to DLQ.");
+                        channel.BasicNack(ea.DeliveryTag, false, requeue: false);
                     }
                 };
 

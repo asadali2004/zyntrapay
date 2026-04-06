@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using WalletService.Exceptions;
 
 namespace WalletService.Middleware;
 
@@ -23,14 +24,31 @@ public class GlobalExceptionMiddleware
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception. Path: {Path}", context.Request.Path);
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                statusCode = 500,
-                message = "An unexpected error occurred.",
-                detail = ex.Message
-            }));
+            await HandleExceptionAsync(context, ex);
         }
+    }
+
+    private static Task HandleExceptionAsync(HttpContext context, Exception ex)
+    {
+        var statusCode = ex switch
+        {
+            AppException appException => appException.StatusCode,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            KeyNotFoundException => StatusCodes.Status404NotFound,
+            ArgumentException => StatusCodes.Status400BadRequest,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = statusCode;
+
+        return context.Response.WriteAsync(JsonSerializer.Serialize(new
+        {
+            statusCode,
+            message = statusCode == StatusCodes.Status500InternalServerError
+                ? "An unexpected error occurred."
+                : ex.Message,
+            detail = ex.Message
+        }));
     }
 }

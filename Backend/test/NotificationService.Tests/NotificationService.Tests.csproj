@@ -22,8 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\services\RewardsService\RewardsService.csproj" />
-		<ProjectReference Include="..\..\src\building-block\Shared.Events\Shared.Events.csproj" />
+		<ProjectReference Include="..\..\src\services\NotificationService\NotificationService.csproj" />
 	</ItemGroup>
 
 </Project>

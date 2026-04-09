@@ -9,7 +9,10 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="8.0.1">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>runtime; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.msbuild" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NUnit" Version="4.1.0" />
@@ -20,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\services\AdminService\AdminService.csproj" />
+    <ProjectReference Include="..\..\src\building-block\Shared.Events\Shared.Events.csproj" />
   </ItemGroup>
 
 </Project>

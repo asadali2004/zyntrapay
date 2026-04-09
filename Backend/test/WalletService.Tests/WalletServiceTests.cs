@@ -99,6 +99,32 @@ public class WalletServiceTests
     }
 
     [Test]
+    public async Task TopUp_WhenEventPublishFails_ReturnsSuccessWithWarning()
+    {
+        var wallet = new Wallet
+        {
+            Id = 1,
+            AuthUserId = 1,
+            UserEmail = "john@example.com",
+            Balance = 500m,
+            IsActive = true
+        };
+
+        _repoMock.Setup(r => r.GetWalletByAuthUserIdAsync(1)).ReturnsAsync(wallet);
+        _repoMock.Setup(r => r.AddLedgerEntryAsync(It.IsAny<LedgerEntry>())).Returns(Task.CompletedTask);
+        _repoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+        _publisherMock.Setup(p => p.Publish(It.IsAny<WalletTopUpCompletedEvent>())).Returns(false);
+
+        var dto = new TopUpRequestDto { Amount = 1000m, Description = "Top-Up" };
+
+        var (success, message) = await _walletService.TopUpAsync(1, "john@example.com", dto);
+
+        Assert.That(success, Is.True);
+        Assert.That(message, Does.Contain("Notifications may be delayed"));
+        Assert.That(wallet.Balance, Is.EqualTo(1500m));
+    }
+
+    [Test]
     public async Task TopUp_WalletNotFound_ReturnsFalse()
     {
         // Arrange
@@ -423,6 +449,48 @@ public class WalletServiceTests
         Assert.That(senderWallet.Balance, Is.EqualTo(700m));
         Assert.That(receiverWallet.Balance, Is.EqualTo(500m));
         _publisherMock.Verify(p => p.Publish(It.IsAny<object>()), Times.Once);
+    }
+
+    [Test]
+    public async Task Transfer_WhenEventPublishFails_ReturnsSuccessWithWarning()
+    {
+        var senderWallet = new Wallet
+        {
+            Id = 1,
+            AuthUserId = 1,
+            Balance = 1000m,
+            IsActive = true,
+            UserEmail = "john@example.com"
+        };
+
+        var receiverWallet = new Wallet
+        {
+            Id = 2,
+            AuthUserId = 2,
+            Balance = 200m,
+            IsActive = true,
+            UserEmail = "jane@example.com"
+        };
+
+        _repoMock.Setup(r => r.GetWalletByAuthUserIdAsync(1)).ReturnsAsync(senderWallet);
+        _repoMock.Setup(r => r.GetWalletByAuthUserIdAsync(2)).ReturnsAsync(receiverWallet);
+        _repoMock.Setup(r => r.AddLedgerEntryAsync(It.IsAny<LedgerEntry>())).Returns(Task.CompletedTask);
+        _repoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+        _publisherMock.Setup(p => p.Publish(It.IsAny<WalletTransferCompletedEvent>())).Returns(false);
+
+        var dto = new TransferRequestDto
+        {
+            ReceiverAuthUserId = 2,
+            Amount = 300m,
+            Description = "Test transfer"
+        };
+
+        var (success, message) = await _walletService.TransferAsync(1, "john@example.com", dto);
+
+        Assert.That(success, Is.True);
+        Assert.That(message, Does.Contain("Notifications may be delayed"));
+        Assert.That(senderWallet.Balance, Is.EqualTo(700m));
+        Assert.That(receiverWallet.Balance, Is.EqualTo(500m));
     }
 
     [Test]

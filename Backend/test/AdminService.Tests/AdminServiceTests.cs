@@ -142,6 +142,30 @@ public class AdminServiceTests
     }
 
     [Test]
+    public async Task ReviewKyc_WhenEventPublishFails_ReturnsSuccessWithWarning()
+    {
+        _userClientMock
+            .Setup(x => x.ReviewKycAsync(1, It.IsAny<ReviewKycDto>()))
+            .ReturnsAsync(true);
+        _repoMock.Setup(r => r.AddActionAsync(It.IsAny<AdminAction>())).Returns(Task.CompletedTask);
+        _repoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+        _publisherMock.Setup(p => p.Publish(It.IsAny<KycStatusChangedEvent>())).Returns(false);
+
+        var dto = new ReviewKycDto
+        {
+            Status = "Approved",
+            TargetAuthUserId = 10,
+            UserEmail = "john@example.com"
+        };
+
+        var (success, message) = await _adminService.ReviewKycAsync(99, 1, dto);
+
+        Assert.That(success, Is.True);
+        Assert.That(message, Does.Contain("Notification may be delayed"));
+        _repoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Test]
     public async Task ToggleUserStatus_DownstreamFailure_ReturnsFalse()
     {
         _authClientMock.Setup(x => x.ToggleUserStatusAsync(10)).ReturnsAsync(false);

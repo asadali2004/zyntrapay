@@ -101,6 +101,30 @@ public class AuthServiceTests
     }
 
     [Test]
+    public async Task Register_WhenWelcomeEmailPublishFails_ReturnsSuccessWithWarning()
+    {
+        _cache.Set("verified_john@example.com", true, TimeSpan.FromMinutes(15));
+
+        _repoMock.Setup(r => r.EmailExistsAsync("john@example.com")).ReturnsAsync(false);
+        _repoMock.Setup(r => r.PhoneExistsAsync("9876543210")).ReturnsAsync(false);
+        _repoMock.Setup(r => r.AddUserAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+        _repoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+        _publisherMock.Setup(p => p.Publish(It.IsAny<WelcomeEmailRequestedEvent>())).Returns(false);
+
+        var dto = new RegisterRequestDto
+        {
+            Email = "john@example.com",
+            PhoneNumber = "9876543210",
+            Password = "Test@123"
+        };
+
+        var (success, message) = await _authService.RegisterAsync(dto);
+
+        Assert.That(success, Is.True);
+        Assert.That(message, Does.Contain("welcome email could not be queued"));
+    }
+
+    [Test]
     public async Task Register_WithDuplicateEmail_ReturnsFalse()
     {
         // Arrange

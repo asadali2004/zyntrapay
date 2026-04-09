@@ -213,6 +213,27 @@ public class RewardsServiceTests
     }
 
     [Test]
+    public async Task AwardPoints_WhenEventPublishFails_StillSavesPoints()
+    {
+        var account = new RewardAccount
+        {
+            Id = 1,
+            AuthUserId = 1,
+            TotalPoints = 900,
+            Tier = "Silver"
+        };
+
+        _repoMock.Setup(r => r.GetAccountByAuthUserIdAsync(1)).ReturnsAsync(account);
+        _repoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
+        _publisherMock.Setup(p => p.Publish(It.IsAny<PointsAwardedEvent>())).Returns(false);
+
+        await _rewardsService.AwardPointsAsync(1, 10000m);
+
+        Assert.That(account.TotalPoints, Is.EqualTo(1000));
+        Assert.That(account.Tier, Is.EqualTo("Gold"));
+    }
+
+    [Test]
     public async Task AwardPoints_ZeroAmount_DoesNothing()
     {
         await _rewardsService.AwardPointsAsync(1, 0m);

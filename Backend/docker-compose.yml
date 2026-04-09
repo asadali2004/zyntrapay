@@ -1,0 +1,202 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: zyntrapay-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD:-ZyntraPay123!}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: zyntrapay-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: zyntrapay-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  authservice:
+    build:
+      context: .
+      dockerfile: src/services/AuthService/Dockerfile
+    container_name: zyntrapay-authservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__AuthDB: Server=sqlserver,1433;Database=AuthDB;User Id=sa;Password=${SQL_SA_PASSWORD:-ZyntraPay123!};TrustServerCertificate=True;Encrypt=False;
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-ZyntraPayJwtSecretKey1234567890!}
+      AdminSettings__SecretKey: ${ADMIN_SECRET_KEY:-ZyntraPayAdminSecret123!}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_DEFAULT_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_DEFAULT_PASS:-guest}
+    ports:
+      - "5002:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  userservice:
+    build:
+      context: .
+      dockerfile: src/services/UserService/Dockerfile
+    container_name: zyntrapay-userservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__UserDB: Server=sqlserver,1433;Database=UserDB;User Id=sa;Password=${SQL_SA_PASSWORD:-ZyntraPay123!};TrustServerCertificate=True;Encrypt=False;
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-ZyntraPayJwtSecretKey1234567890!}
+    ports:
+      - "5004:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  walletservice:
+    build:
+      context: .
+      dockerfile: src/services/WalletService/Dockerfile
+    container_name: zyntrapay-walletservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__WalletDB: Server=sqlserver,1433;Database=WalletDB;User Id=sa;Password=${SQL_SA_PASSWORD:-ZyntraPay123!};TrustServerCertificate=True;Encrypt=False;
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-ZyntraPayJwtSecretKey1234567890!}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_DEFAULT_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_DEFAULT_PASS:-guest}
+    ports:
+      - "5006:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  rewardsservice:
+    build:
+      context: .
+      dockerfile: src/services/RewardsService/Dockerfile
+    container_name: zyntrapay-rewardsservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__RewardsDB: Server=sqlserver,1433;Database=RewardsDB;User Id=sa;Password=${SQL_SA_PASSWORD:-ZyntraPay123!};TrustServerCertificate=True;Encrypt=False;
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-ZyntraPayJwtSecretKey1234567890!}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_DEFAULT_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_DEFAULT_PASS:-guest}
+    ports:
+      - "5008:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notificationservice:
+    build:
+      context: .
+      dockerfile: src/services/NotificationService/Dockerfile
+    container_name: zyntrapay-notificationservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__NotificationDB: Server=sqlserver,1433;Database=NotificationDB;User Id=sa;Password=${SQL_SA_PASSWORD:-ZyntraPay123!};TrustServerCertificate=True;Encrypt=False;
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-ZyntraPayJwtSecretKey1234567890!}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_DEFAULT_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_DEFAULT_PASS:-guest}
+      EmailSettings__Host: mailpit
+      EmailSettings__Port: 1025
+      EmailSettings__Username: ""
+      EmailSettings__Password: ""
+      EmailSettings__FromEmail: no-reply@zyntrapay.local
+      EmailSettings__FromName: ZyntraPay
+    ports:
+      - "5010:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  adminservice:
+    build:
+      context: .
+      dockerfile: src/services/AdminService/Dockerfile
+    container_name: zyntrapay-adminservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__AdminDB: Server=sqlserver,1433;Database=AdminDB;User Id=sa;Password=${SQL_SA_PASSWORD:-ZyntraPay123!};TrustServerCertificate=True;Encrypt=False;
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-ZyntraPayJwtSecretKey1234567890!}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_DEFAULT_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_DEFAULT_PASS:-guest}
+      ServiceUrls__AuthService: http://authservice:8080
+      ServiceUrls__UserService: http://userservice:8080
+    ports:
+      - "5012:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      authservice:
+        condition: service_started
+      userservice:
+        condition: service_started
+
+  apigateway:
+    build:
+      context: .
+      dockerfile: src/gateway/ApiGateway/Dockerfile
+    container_name: zyntrapay-apigateway
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5000:8080"
+    depends_on:
+      authservice:
+        condition: service_started
+      userservice:
+        condition: service_started
+      walletservice:
+        condition: service_started
+      rewardsservice:
+        condition: service_started
+      notificationservice:
+        condition: service_started
+      adminservice:
+        condition: service_started
+
+volumes:
+  sqlserver_data:

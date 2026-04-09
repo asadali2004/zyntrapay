@@ -1,0 +1,14 @@
+.vs
+.artifacts
+**/bin
+**/obj
+**/TestResults
+**/logs
+**/*.user
+**/*.suo
+**/.DS_Store
+.git
+.gitignore
+README.md
+auth-build.log
+integration-build.log

@@ -79,4 +79,15 @@ public class PointsAwardedNotificationConsumer : BackgroundService
             }
         }
     }
+
+    public async Task ProcessAsync(PointsAwardedEvent @event)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var notificationSvc = scope.ServiceProvider.GetRequiredService<INotificationService>();
+
+        await notificationSvc.CreateAsync(
+            @event.AuthUserId,
+            "Reward Points Earned",
+            $"You earned {@event.PointsEarned} points. Total points: {@event.TotalPoints}. Current tier: {@event.Tier}.");
+    }
 }

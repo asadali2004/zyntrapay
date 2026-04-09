@@ -105,8 +105,8 @@ public class WalletServiceImpl : IWalletService
         await _repo.SaveChangesAsync();
         _cache.Remove($"wallet_balance_{authUserId}");
 
-        // Publish event to RabbitMQ
-        _publisher.Publish(new WalletTopUpCompletedEvent
+        // Top-up is already committed, so event publish failure should not roll it back.
+        var published = _publisher.Publish(new WalletTopUpCompletedEvent
         {
             AuthUserId = authUserId,
             UserEmail = userEmail,
@@ -116,6 +116,12 @@ public class WalletServiceImpl : IWalletService
         });
 
         _logger.LogInformation("TopUp successful for AuthUserId: {Id}, NewBalance: {Balance}", authUserId, wallet.Balance);
+        if (!published)
+        {
+            _logger.LogWarning("Wallet top-up event publish failed for AuthUserId: {Id}", authUserId);
+            return (true, $"Top-up of {dto.Amount:C} successful. New balance: {wallet.Balance:C}. Notifications may be delayed.");
+        }
+
         return (true, $"Top-up of {dto.Amount:C} successful. New balance: {wallet.Balance:C}");
     }
 
@@ -172,8 +178,8 @@ public class WalletServiceImpl : IWalletService
         _cache.Remove($"wallet_balance_{authUserId}");
         _cache.Remove($"wallet_balance_{dto.ReceiverAuthUserId}");
 
-        // Publish event — read receiver email from wallet
-        _publisher.Publish(new WalletTransferCompletedEvent
+        // Transfer is already committed, so event publish failure should not roll it back.
+        var published = _publisher.Publish(new WalletTransferCompletedEvent
         {
             SenderAuthUserId = authUserId,
             SenderEmail = senderEmail,
@@ -184,6 +190,12 @@ public class WalletServiceImpl : IWalletService
         });
 
         _logger.LogInformation("Transfer successful from {From} to {To}", authUserId, dto.ReceiverAuthUserId);
+        if (!published)
+        {
+            _logger.LogWarning("Wallet transfer event publish failed from {From} to {To}", authUserId, dto.ReceiverAuthUserId);
+            return (true, $"Transfer of {dto.Amount:C} successful. Notifications may be delayed.");
+        }
+
         return (true, $"Transfer of {dto.Amount:C} successful.");
     }
 

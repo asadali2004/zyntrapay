@@ -109,4 +109,37 @@ public class WalletTransferNotificationConsumer : BackgroundService
             }
         }
     }
+
+    public async Task ProcessAsync(WalletTransferCompletedEvent @event)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var notificationSvc = scope.ServiceProvider.GetRequiredService<INotificationService>();
+        var emailSvc = scope.ServiceProvider.GetRequiredService<IEmailService>();
+
+        await notificationSvc.CreateAsync(
+            @event.SenderAuthUserId,
+            "Transfer Successful",
+            $"You have successfully transferred Rs.{@event.Amount:F2}.");
+
+        if (!string.IsNullOrEmpty(@event.SenderEmail))
+        {
+            await emailSvc.SendAsync(
+                @event.SenderEmail,
+                "ZyntraPay - Transfer Successful",
+                EmailTemplates.TransactionEmail("Transfer Sent", @event.Amount, 0));
+        }
+
+        await notificationSvc.CreateAsync(
+            @event.ReceiverAuthUserId,
+            "Money Received",
+            $"You have received Rs.{@event.Amount:F2} in your wallet.");
+
+        if (!string.IsNullOrEmpty(@event.ReceiverEmail))
+        {
+            await emailSvc.SendAsync(
+                @event.ReceiverEmail,
+                "ZyntraPay - Money Received",
+                EmailTemplates.TransactionEmail("Transfer Received", @event.Amount, 0));
+        }
+    }
 }

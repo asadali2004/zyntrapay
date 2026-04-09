@@ -24,8 +24,6 @@ public class EmailService : IEmailService
         try
         {
             if (string.IsNullOrWhiteSpace(_settings.Host) ||
-                string.IsNullOrWhiteSpace(_settings.Username) ||
-                string.IsNullOrWhiteSpace(_settings.Password) ||
                 string.IsNullOrWhiteSpace(_settings.FromEmail) ||
                 string.IsNullOrWhiteSpace(_settings.FromName) ||
                 _settings.Port <= 0)
@@ -43,10 +41,16 @@ public class EmailService : IEmailService
 
             using var client = new SmtpClient();
 
-            await client.ConnectAsync(_settings.Host, _settings.Port,
-                SecureSocketOptions.StartTls);
+            await client.ConnectAsync(
+                _settings.Host,
+                _settings.Port,
+                SecureSocketOptions.StartTlsWhenAvailable);
 
-            await client.AuthenticateAsync(_settings.Username, _settings.Password);
+            if (!string.IsNullOrWhiteSpace(_settings.Username) &&
+                !string.IsNullOrWhiteSpace(_settings.Password))
+            {
+                await client.AuthenticateAsync(_settings.Username, _settings.Password);
+            }
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
 

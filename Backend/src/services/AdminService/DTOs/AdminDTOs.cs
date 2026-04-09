@@ -44,3 +44,14 @@ public class DashboardDto
     public int ApprovedKyc { get; set; }
     public int RejectedKyc { get; set; }
 }
+
+public class AdminActionResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+}
+
+public class AdminErrorResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+    public string ErrorCode { get; set; } = string.Empty;
+}

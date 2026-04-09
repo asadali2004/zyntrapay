@@ -44,6 +44,9 @@ Thumbs.db
 .artifacts/
 *.build.log
 *-build.log
+Backend/test/CoverageReport/
+.tools/
+e -File -Include*Select-Object FullName
 
 # User Secrets
 secrets.json

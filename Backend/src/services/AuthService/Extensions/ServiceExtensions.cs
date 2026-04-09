@@ -49,6 +49,7 @@ public static class ServiceExtensions
             .Bind(config.GetSection("RabbitMQ"));
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IAuthService, AuthServiceImpl>();
+        services.AddSingleton<IRabbitMqConnectionFactoryBuilder, RabbitMqConnectionFactoryBuilderImpl>();
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
         services.AddMemoryCache();
         return services;

@@ -70,3 +70,14 @@ public class ReviewKycDto
     public string Status { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
 }
+
+public class UserActionResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+}
+
+public class UserErrorResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+    public string ErrorCode { get; set; } = string.Empty;
+}

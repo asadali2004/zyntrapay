@@ -9,13 +9,16 @@ namespace AuthService.Services;
 public class RabbitMqPublisher : IRabbitMqPublisher
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;
+    private readonly IRabbitMqConnectionFactoryBuilder _factoryBuilder;
     private readonly ILogger<RabbitMqPublisher> _logger;
 
     public RabbitMqPublisher(
         IOptions<RabbitMqConnectionOptions> rabbitMqOptions,
+        IRabbitMqConnectionFactoryBuilder factoryBuilder,
         ILogger<RabbitMqPublisher> logger)
     {
         _rabbitMqOptions = rabbitMqOptions.Value;
+        _factoryBuilder = factoryBuilder;
         _logger = logger;
     }
 
@@ -23,7 +26,7 @@ public class RabbitMqPublisher : IRabbitMqPublisher
     {
         try
         {
-            var factory = RabbitMqConnectionFactoryBuilder.Create(_rabbitMqOptions);
+            var factory = _factoryBuilder.Create(_rabbitMqOptions);
 
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();

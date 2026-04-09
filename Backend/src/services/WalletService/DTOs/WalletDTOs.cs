@@ -46,3 +46,14 @@ public class LedgerEntryDto
     public string? ReferenceId { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+public class WalletActionResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+}
+
+public class WalletErrorResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+    public string ErrorCode { get; set; } = string.Empty;
+}

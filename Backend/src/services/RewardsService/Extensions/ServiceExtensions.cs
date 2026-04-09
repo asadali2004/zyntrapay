@@ -50,6 +50,7 @@ public static class ServiceExtensions
             .Bind(config.GetSection("RabbitMQ"));
         services.AddScoped<IRewardsRepository, RewardsRepository>();
         services.AddScoped<IRewardsService, RewardsServiceImpl>();
+        services.AddSingleton<IRabbitMqConnectionFactoryBuilder, RabbitMqConnectionFactoryBuilderImpl>();
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
         services.AddHostedService<WalletTopUpConsumer>(); // ← RabbitMQ consumer
         services.AddMemoryCache();

@@ -93,4 +93,27 @@ public class KycStatusChangedConsumer : BackgroundService
             }
         }
     }
+
+    public async Task ProcessAsync(KycStatusChangedEvent @event)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var notificationSvc = scope.ServiceProvider.GetRequiredService<INotificationService>();
+        var emailSvc = scope.ServiceProvider.GetRequiredService<IEmailService>();
+
+        var suffix = @event.Status == "Approved" ? "Approved" : "Rejected";
+        await notificationSvc.CreateAsync(
+            @event.AuthUserId,
+            $"KYC {suffix}",
+            @event.Status == "Approved"
+                ? "Your KYC has been approved. All features are now unlocked."
+                : $"Your KYC was rejected. Reason: {@event.Reason}");
+
+        if (!string.IsNullOrEmpty(@event.UserEmail))
+        {
+            await emailSvc.SendAsync(
+                @event.UserEmail,
+                $"ZyntraPay - KYC {@event.Status}",
+                EmailTemplates.KycStatusEmail(@event.Status, @event.Reason));
+        }
+    }
 }

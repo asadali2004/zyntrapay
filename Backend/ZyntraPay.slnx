@@ -28,6 +28,7 @@
   <Folder Name="/test/">
     <Project Path="test/AdminService.Tests/AdminService.Tests.csproj" />
     <Project Path="test/AuthService.Tests/AuthService.Tests.csproj" />
+    <Project Path="test/NotificationService.Tests/NotificationService.Tests.csproj" />
     <Project Path="test/RewardsService.Tests/RewardsService.Tests.csproj" />
     <Project Path="test/UserService.Tests/UserService.Tests.csproj" />
     <Project Path="test/WalletService.Tests/WalletService.Tests.csproj" />

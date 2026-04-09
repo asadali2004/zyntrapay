@@ -79,4 +79,15 @@ public class OtpRequestedConsumer : BackgroundService
             }
         }
     }
+
+    public async Task ProcessAsync(OtpRequestedEvent @event)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var emailSvc = scope.ServiceProvider.GetRequiredService<IEmailService>();
+
+        await emailSvc.SendAsync(
+            @event.Email,
+            "ZyntraPay - Email Verification OTP",
+            EmailTemplates.OtpEmail(@event.Otp));
+    }
 }

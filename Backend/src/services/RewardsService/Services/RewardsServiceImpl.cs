@@ -157,7 +157,7 @@ public class RewardsServiceImpl : IRewardsService
 
         await _repo.SaveChangesAsync();
 
-        _publisher.Publish(new PointsAwardedEvent
+        var published = _publisher.Publish(new PointsAwardedEvent
         {
             AuthUserId = authUserId,
             PointsEarned = pointsToAward,
@@ -165,6 +165,11 @@ public class RewardsServiceImpl : IRewardsService
             Tier = account.Tier,
             Timestamp = DateTime.UtcNow
         });
+
+        if (!published)
+        {
+            _logger.LogWarning("Points awarded event publish failed for AuthUserId: {Id}", authUserId);
+        }
 
         _logger.LogInformation("Awarded {Points} points to AuthUserId: {Id}. New total: {Total}",
             pointsToAward, authUserId, account.TotalPoints);

@@ -2,6 +2,7 @@ using AuthService.Data;
 using AuthService.Extensions;
 using AuthService.Middleware;
 using AuthService.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -25,6 +26,23 @@ builder.Services.AddHealthChecks();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true);
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var firstError = context.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .FirstOrDefault();
+
+        return new BadRequestObjectResult(new
+        {
+            message = string.IsNullOrWhiteSpace(firstError) ? "Validation failed." : firstError,
+            errorCode = "VALIDATION_FAILED"
+        });
+    };
+});
 
 var app = builder.Build();
 

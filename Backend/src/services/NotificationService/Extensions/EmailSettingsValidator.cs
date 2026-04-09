@@ -15,12 +15,6 @@ public class EmailSettingsValidator : IValidateOptions<EmailSettings>
         if (options.Port <= 0 || options.Port > 65535)
             failures.Add("EmailSettings:Port must be between 1 and 65535.");
 
-        if (string.IsNullOrWhiteSpace(options.Username))
-            failures.Add("EmailSettings:Username is required.");
-
-        if (string.IsNullOrWhiteSpace(options.Password))
-            failures.Add("EmailSettings:Password is required.");
-
         if (string.IsNullOrWhiteSpace(options.FromName))
             failures.Add("EmailSettings:FromName is required.");
 

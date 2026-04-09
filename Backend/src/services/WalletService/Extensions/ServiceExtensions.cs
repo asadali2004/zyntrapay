@@ -49,6 +49,7 @@ public static class ServiceExtensions
             .Bind(config.GetSection("RabbitMQ"));
         services.AddScoped<IWalletRepository, WalletRepository>();
         services.AddScoped<IWalletService, WalletServiceImpl>();
+        services.AddSingleton<IRabbitMqConnectionFactoryBuilder, RabbitMqConnectionFactoryBuilderImpl>();
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
         services.AddMemoryCache();
         return services;

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NotificationService.Data;
 using NotificationService.Extensions;
@@ -37,13 +38,33 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true);
 
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var firstError = context.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .FirstOrDefault();
+
+        return new BadRequestObjectResult(new
+        {
+            message = string.IsNullOrWhiteSpace(firstError) ? "Validation failed." : firstError,
+            errorCode = "VALIDATION_FAILED"
+        });
+    };
+});
+
 var app = builder.Build();
 
 // Auto-apply migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
-    db.Database.Migrate();
+    if (db.Database.IsRelational())
+    {
+        db.Database.Migrate();
+    }
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();

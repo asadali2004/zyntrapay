@@ -49,8 +49,8 @@ public class AdminServiceImpl : IAdminService
         if (!success)
             return (false, "Failed to update KYC status.");
 
-        // Publish KYC status change event using DTO-provided data
-        _publisher.Publish(new KycStatusChangedEvent
+        // KYC review is already committed downstream, so publish failure should not undo the review.
+        var published = _publisher.Publish(new KycStatusChangedEvent
         {
             AuthUserId = dto.TargetAuthUserId,
             UserEmail = dto.UserEmail,
@@ -68,6 +68,12 @@ public class AdminServiceImpl : IAdminService
             PerformedAt = DateTime.UtcNow
         });
         await _repo.SaveChangesAsync();
+
+        if (!published)
+        {
+            _logger.LogWarning("KYC status changed event publish failed for target user {TargetAuthUserId}", dto.TargetAuthUserId);
+            return (true, $"KYC {dto.Status} successfully. Notification may be delayed.");
+        }
 
         return (true, $"KYC {dto.Status} successfully.");
     }

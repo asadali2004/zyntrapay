@@ -53,6 +53,7 @@ public static class ServiceExtensions
             .Bind(config.GetSection("RabbitMQ"));
         services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IAdminService, AdminServiceImpl>();
+        services.AddSingleton<IRabbitMqConnectionFactoryBuilder, RabbitMqConnectionFactoryBuilderImpl>();
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
 
         // Register IHttpContextAccessor and handler

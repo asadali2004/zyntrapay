@@ -14,6 +14,25 @@
 - JSON property names are case-insensitive, but examples below use the actual DTO names.
 - `AuthUserId` is taken from JWT claims by controllers (not passed in request body for user endpoints).
 
+### Standard Error Payload (All Services)
+
+```json
+{
+  "message": "Readable error message",
+  "errorCode": "STABLE_ERROR_CODE"
+}
+```
+
+### Platform-Level Fallback Error Codes
+
+These are returned by shared middleware and API validation when request/business mapping is not more specific:
+
+- `VALIDATION_FAILED` (400)
+- `UNAUTHORIZED` (401)
+- `RESOURCE_NOT_FOUND` (404)
+- `CONFLICT` (409)
+- `INTERNAL_SERVER_ERROR` (500)
+
 ---
 
 ## Auth Service (`/gateway/auth`)
@@ -133,6 +152,27 @@
     "errorCode": "EMAIL_ALREADY_REGISTERED"
   }
   ```
+
+### Auth Error Response Shape
+```json
+{
+  "message": "Readable error message",
+  "errorCode": "STABLE_ERROR_CODE"
+}
+```
+
+Important auth error codes:
+- `EMAIL_ALREADY_REGISTERED`
+- `PHONE_ALREADY_REGISTERED`
+- `EMAIL_NOT_VERIFIED`
+- `OTP_EXPIRED`
+- `OTP_INVALID`
+- `OTP_DELIVERY_FAILED`
+- `INVALID_CREDENTIALS`
+- `ACCOUNT_DEACTIVATED`
+- `REFRESH_TOKEN_INVALID`
+- `USER_NOT_FOUND`
+- `AUTH_VALIDATION_FAILED`
 
 ### 7) Forgot Password
 - **POST** `/gateway/auth/forgot-password`
@@ -271,6 +311,13 @@
     "pinCode": "400001"
   }
   ```
+- **Failure Response Example (404)**:
+  ```json
+  {
+    "message": "Profile not found.",
+    "errorCode": "PROFILE_NOT_FOUND"
+  }
+  ```
 
 ### 3) Submit KYC
 - **POST** `/gateway/user/kyc` (Authenticated)
@@ -360,6 +407,13 @@
     "balance": 1500.00,
     "isActive": true,
     "createdAt": "2026-03-31T10:00:00Z"
+  }
+  ```
+- **Failure Response Example (404)**:
+  ```json
+  {
+    "message": "Wallet not found.",
+    "errorCode": "WALLET_NOT_FOUND"
   }
   ```
 
@@ -471,6 +525,13 @@
     "message": "Reward redeemed successfully"
   }
   ```
+- **Failure Response Example (400)**:
+  ```json
+  {
+    "message": "This reward is out of stock.",
+    "errorCode": "REWARD_OUT_OF_STOCK"
+  }
+  ```
 
 ### 4) Get Redemption History
 - **GET** `/gateway/rewards/history` (Authenticated)
@@ -511,6 +572,13 @@
   ```json
   {
     "message": "Notification marked as read"
+  }
+  ```
+- **Failure Response Example (404)**:
+  ```json
+  {
+    "message": "Notification not found.",
+    "errorCode": "NOTIFICATION_NOT_FOUND"
   }
   ```
 

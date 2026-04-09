@@ -44,11 +44,20 @@ public class GlobalExceptionMiddleware
 
         return context.Response.WriteAsync(JsonSerializer.Serialize(new
         {
-            statusCode,
             message = statusCode == StatusCodes.Status500InternalServerError
                 ? "An unexpected error occurred."
                 : ex.Message,
-            detail = ex.Message
+            errorCode = GetErrorCode(statusCode)
         }));
     }
+
+    private static string GetErrorCode(int statusCode)
+        => statusCode switch
+        {
+            StatusCodes.Status400BadRequest => "VALIDATION_FAILED",
+            StatusCodes.Status401Unauthorized => "UNAUTHORIZED",
+            StatusCodes.Status404NotFound => "RESOURCE_NOT_FOUND",
+            StatusCodes.Status409Conflict => "CONFLICT",
+            _ => "INTERNAL_SERVER_ERROR"
+        };
 }

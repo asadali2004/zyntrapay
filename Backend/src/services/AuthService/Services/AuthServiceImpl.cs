@@ -107,14 +107,20 @@ public class AuthServiceImpl : IAuthService
         // Remove verified flag after registration
         _cache.Remove($"verified_{normalizedEmail}");
 
-        // Publish welcome email event
-        _publisher.Publish(new WelcomeEmailRequestedEvent
+        // Registration is already committed, so welcome-email publish failure should not block signup.
+        var published = _publisher.Publish(new WelcomeEmailRequestedEvent
         {
             Email = normalizedEmail,
             Timestamp = DateTime.UtcNow
         });
 
         _logger.LogInformation("User registered successfully: {Email}", normalizedEmail);
+        if (!published)
+        {
+            _logger.LogWarning("Welcome email publish failed for registered user: {Email}", normalizedEmail);
+            return (true, "Registration successful, but welcome email could not be queued right now.");
+        }
+
         return (true, "Registration successful.");
     }
 
@@ -205,7 +211,7 @@ public class AuthServiceImpl : IAuthService
             await _repo.AddUserAsync(newUser);
             await _repo.SaveChangesAsync();
 
-            _publisher.Publish(new WelcomeEmailRequestedEvent
+            var published = _publisher.Publish(new WelcomeEmailRequestedEvent
             {
                 Email = newUser.Email,
                 Timestamp = DateTime.UtcNow
@@ -215,6 +221,13 @@ public class AuthServiceImpl : IAuthService
 
             var response = BuildAuthResponse(newUser);
             response.PhoneUpdateRequired = true;
+
+            if (!published)
+            {
+                _logger.LogWarning("Welcome email publish failed for Google login registration: {Email}", normalizedEmail);
+                return (true, response, "Registration via Google successful, but welcome email could not be queued right now.");
+            }
+
             return (true, response, "Registration via Google successful.");
         }
         catch (InvalidJwtException ex)

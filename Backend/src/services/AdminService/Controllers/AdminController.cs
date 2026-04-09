@@ -1,6 +1,7 @@
-﻿using AdminService.DTOs;
+using AdminService.DTOs;
 using AdminService.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -22,25 +23,27 @@ public class AdminController : ControllerBase
         => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet("kyc/pending")]
+    [ProducesResponseType(typeof(List<KycSubmissionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminErrorResponseDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetPendingKycs()
     {
         var (success, data, message) = await _adminService.GetPendingKycsAsync();
-        if (!success) return BadRequest(new { message });
+        if (!success) return BadRequest(BuildErrorResponse(message));
         return Ok(data);
     }
 
     [HttpPut("kyc/{kycId}/review")]
+    [ProducesResponseType(typeof(AdminActionResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminErrorResponseDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ReviewKyc(int kycId, [FromBody] ReviewKycDto dto)
     {
-        // Fetch KYC to get AuthUserId and email before reviewing
         var (success, kycs, _) = await _adminService.GetPendingKycsAsync();
         var kyc = kycs?.FirstOrDefault(k => k.Id == kycId);
 
         if (kyc != null)
         {
             dto.TargetAuthUserId = kyc.AuthUserId;
-            
-            // Email lookup — fetch all users and match by AuthUserId
+
             var (userSuccess, users, _) = await _adminService.GetAllUsersAsync();
             if (userSuccess)
             {
@@ -50,31 +53,59 @@ public class AdminController : ControllerBase
         }
 
         var (reviewSuccess, message) = await _adminService.ReviewKycAsync(GetAuthUserId(), kycId, dto);
-        if (!reviewSuccess) return BadRequest(new { message });
-        return Ok(new { message });
+        if (!reviewSuccess) return BadRequest(BuildErrorResponse(message));
+        return Ok(new AdminActionResponseDto { Message = message });
     }
 
     [HttpGet("users")]
+    [ProducesResponseType(typeof(List<UserSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminErrorResponseDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAllUsers()
     {
         var (success, data, message) = await _adminService.GetAllUsersAsync();
-        if (!success) return BadRequest(new { message });
+        if (!success) return BadRequest(BuildErrorResponse(message));
         return Ok(data);
     }
 
     [HttpPut("users/{userId}/toggle")]
+    [ProducesResponseType(typeof(AdminActionResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminErrorResponseDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ToggleUserStatus(int userId)
     {
         var (success, message) = await _adminService.ToggleUserStatusAsync(GetAuthUserId(), userId);
-        if (!success) return BadRequest(new { message });
-        return Ok(new { message });
+        if (!success) return BadRequest(BuildErrorResponse(message));
+        return Ok(new AdminActionResponseDto { Message = message });
     }
 
     [HttpGet("dashboard")]
+    [ProducesResponseType(typeof(DashboardDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminErrorResponseDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetDashboard()
     {
         var (success, data, message) = await _adminService.GetDashboardAsync();
-        if (!success) return BadRequest(new { message });
+        if (!success) return BadRequest(BuildErrorResponse(message));
         return Ok(data);
+    }
+
+    private static AdminErrorResponseDto BuildErrorResponse(string message)
+        => new()
+        {
+            Message = message,
+            ErrorCode = GetErrorCode(message)
+        };
+
+    private static string GetErrorCode(string message)
+    {
+        if (message.Contains("kyc not found", StringComparison.OrdinalIgnoreCase))
+            return "KYC_NOT_FOUND";
+
+        if (message.Contains("already", StringComparison.OrdinalIgnoreCase))
+            return "ADMIN_CONFLICT";
+
+        if (message.Contains("user", StringComparison.OrdinalIgnoreCase) &&
+            message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            return "USER_NOT_FOUND";
+
+        return "ADMIN_VALIDATION_FAILED";
     }
 }

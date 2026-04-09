@@ -92,4 +92,24 @@ public class WalletTopUpNotificationConsumer : BackgroundService
             }
         }
     }
+
+    public async Task ProcessAsync(WalletTopUpCompletedEvent @event)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var notificationSvc = scope.ServiceProvider.GetRequiredService<INotificationService>();
+        var emailSvc = scope.ServiceProvider.GetRequiredService<IEmailService>();
+
+        await notificationSvc.CreateAsync(
+            @event.AuthUserId,
+            "Wallet Top-Up Successful",
+            $"Your wallet has been credited with Rs.{@event.Amount:F2}. New balance: Rs.{@event.NewBalance:F2}.");
+
+        if (!string.IsNullOrEmpty(@event.UserEmail))
+        {
+            await emailSvc.SendAsync(
+                @event.UserEmail,
+                "ZyntraPay - Wallet Top-Up Successful",
+                EmailTemplates.TransactionEmail("Top-Up", @event.Amount, @event.NewBalance));
+        }
+    }
 }

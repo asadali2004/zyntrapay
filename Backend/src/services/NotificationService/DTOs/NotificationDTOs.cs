@@ -8,3 +8,14 @@ public class NotificationDto
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+public class NotificationActionResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+}
+
+public class NotificationErrorResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+    public string ErrorCode { get; set; } = string.Empty;
+}

@@ -31,3 +31,14 @@ public class RedemptionHistoryDto
     public int PointsSpent { get; set; }
     public DateTime RedeemedAt { get; set; }
 }
+
+public class RewardsActionResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+}
+
+public class RewardsErrorResponseDto
+{
+    public string Message { get; set; } = string.Empty;
+    public string ErrorCode { get; set; } = string.Empty;
+}

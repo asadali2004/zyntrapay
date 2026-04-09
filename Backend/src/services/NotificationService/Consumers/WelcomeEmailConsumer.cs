@@ -78,4 +78,15 @@ public class WelcomeEmailConsumer : BackgroundService
             }
         }
     }
+
+    public async Task ProcessAsync(WelcomeEmailRequestedEvent @event)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var emailSvc = scope.ServiceProvider.GetRequiredService<IEmailService>();
+
+        await emailSvc.SendAsync(
+            @event.Email,
+            "Welcome to ZyntraPay!",
+            EmailTemplates.WelcomeEmail("ZyntraPay User"));
+    }
 }

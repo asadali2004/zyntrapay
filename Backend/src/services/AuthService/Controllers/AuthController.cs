@@ -1,6 +1,7 @@
 ﻿using AuthService.DTOs;
 using AuthService.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -18,6 +19,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [ProducesResponseType(typeof(SignupStepResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
     {
         var (success, message) = await _authService.RegisterAsync(dto);
@@ -30,6 +34,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register-admin")]
+    [ProducesResponseType(typeof(AuthActionResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> RegisterAdmin([FromBody] AdminRegisterRequestDto dto)
     {
         var (success, message) = await _authService.RegisterAdminAsync(dto);
@@ -38,6 +45,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
     {
         var (success, data, message) = await _authService.LoginAsync(dto);
@@ -46,6 +55,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("google-login")]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto dto)
     {
         var (success, data, message) = await _authService.GoogleLoginAsync(dto);
@@ -55,6 +66,8 @@ public class AuthController : ControllerBase
 
     [HttpPut("update-phone")]
     [Authorize]
+    [ProducesResponseType(typeof(AuthActionResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdatePhone([FromBody] UpdatePhoneDto dto)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -66,6 +79,7 @@ public class AuthController : ControllerBase
     // Admin-only endpoints called by AdminService internally
     [HttpGet("admin/users")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(List<UserSummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUsers()
     {
         var users = await _authService.GetAllUsersAsync();
@@ -74,6 +88,8 @@ public class AuthController : ControllerBase
 
     [HttpPut("admin/users/{id}/toggle")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(AuthActionResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ToggleUserStatus(int id)
     {
         var (success, message) = await _authService.ToggleUserStatusAsync(id);
@@ -84,6 +100,8 @@ public class AuthController : ControllerBase
     // Internal endpoint for AdminService — get user email by AuthUserId
     [HttpGet("users/{authUserId}/email")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserEmail(int authUserId)
     {
         var (success, data, message) = await _authService.GetUserEmailAsync(authUserId);
@@ -93,6 +111,10 @@ public class AuthController : ControllerBase
 
     [HttpPost("send-otp")]
     [ApiExplorerSettings(IgnoreApi = true)]
+    [ProducesResponseType(typeof(SignupStepResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> SendOtp([FromBody] SendOtpRequestDto dto)
     {
         var (success, message) = await _authService.SendOtpAsync(dto);
@@ -105,6 +127,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register/request-otp")]
+    [ProducesResponseType(typeof(SignupStepResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> RequestRegistrationOtp([FromBody] SendOtpRequestDto dto)
     {
         var (success, message) = await _authService.SendOtpAsync(dto);
@@ -118,6 +144,9 @@ public class AuthController : ControllerBase
 
     [HttpPost("verify-otp")]
     [ApiExplorerSettings(IgnoreApi = true)]
+    [ProducesResponseType(typeof(SignupStepResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDto dto)
     {
         var (success, message) = await _authService.VerifyOtpAsync(dto);
@@ -130,6 +159,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register/verify-otp")]
+    [ProducesResponseType(typeof(SignupStepResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> VerifyRegistrationOtp([FromBody] VerifyOtpRequestDto dto)
     {
         var (success, message) = await _authService.VerifyOtpAsync(dto);
@@ -142,6 +174,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("forgot-password")]
+    [ProducesResponseType(typeof(AuthActionResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto dto)
     {
         var (success, message) = await _authService.ForgotPasswordAsync(dto);
@@ -150,6 +184,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("reset-password")]
+    [ProducesResponseType(typeof(AuthActionResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto dto)
     {
         var (success, message) = await _authService.ResetPasswordAsync(dto);
@@ -158,6 +194,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh-token")]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto)
     {
         var (success, data, message) = await _authService.RefreshTokenAsync(dto);

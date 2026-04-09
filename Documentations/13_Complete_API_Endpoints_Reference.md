@@ -31,7 +31,8 @@
 - **Success Response (200)**:
   ```json
   {
-    "message": "User registered successfully"
+    "message": "Registration successful.",
+    "nextStep": "login"
   }
   ```
 
@@ -92,8 +93,8 @@
   }
   ```
 
-### 5) Send OTP
-- **POST** `/gateway/auth/send-otp`
+### 5) Request Registration OTP
+- **POST** `/gateway/auth/register/request-otp`
 - **Request Body**:
   ```json
   {
@@ -103,12 +104,13 @@
 - **Success Response (200)**:
   ```json
   {
-    "message": "OTP sent successfully"
+    "message": "OTP sent to your email. Valid for 10 minutes.",
+    "nextStep": "verify-otp"
   }
   ```
 
-### 6) Verify OTP
-- **POST** `/gateway/auth/verify-otp`
+### 6) Verify Registration OTP
+- **POST** `/gateway/auth/register/verify-otp`
 - **Request Body**:
   ```json
   {
@@ -119,7 +121,16 @@
 - **Success Response (200)**:
   ```json
   {
-    "message": "OTP verified successfully"
+    "message": "Email verified successfully. You can now complete registration.",
+    "nextStep": "complete-registration"
+  }
+  ```
+
+- **Failure Response Example (409)**:
+  ```json
+  {
+    "message": "Email already registered. Please login or use forgot password.",
+    "errorCode": "EMAIL_ALREADY_REGISTERED"
   }
   ```
 
@@ -134,7 +145,7 @@
 - **Success Response (200)**:
   ```json
   {
-    "message": "Password reset OTP sent"
+    "message": "If this email is registered, a reset OTP has been sent."
   }
   ```
 

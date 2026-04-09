@@ -1,0 +1,36 @@
+<Solution>
+  <Folder Name="/Database/">
+    <File Path="Database/01_AuthDB.sql" />
+    <File Path="Database/02_UserDB.sql" />
+    <File Path="Database/03_WalletDB.sql" />
+    <File Path="Database/04_RewardsDB.sql" />
+    <File Path="Database/05_NotificationDB.sql" />
+    <File Path="Database/06_AdminDB.sql" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/building-block/">
+    <Project Path="src/building-block/Shared.Events/Shared.Events.csproj" />
+  </Folder>
+  <Folder Name="/src/gateway/">
+    <Project Path="src/gateway/ApiGateway/ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/src/services/">
+    <Project Path="src/services/AdminService/AdminService.csproj" />
+    <Project Path="src/services/AuthService/AuthService.csproj" />
+    <Project Path="src/services/NotificationService/NotificationService.csproj" />
+    <Project Path="src/services/RewardsService/RewardsService.csproj" />
+    <Project Path="src/services/UserService/UserService.csproj" />
+    <Project Path="src/services/WalletService/WalletService.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/AdminService.Tests/AdminService.Tests.csproj" />
+    <Project Path="test/AuthService.Tests/AuthService.Tests.csproj" />
+    <Project Path="test/RewardsService.Tests/RewardsService.Tests.csproj" />
+    <Project Path="test/UserService.Tests/UserService.Tests.csproj" />
+    <Project Path="test/WalletService.Tests/WalletService.Tests.csproj" />
+    <Project Path="test/ZyntraPay.IntegrationTests/ZyntraPay.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

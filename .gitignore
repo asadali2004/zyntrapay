@@ -15,8 +15,10 @@ logs/
 
 # Visual Studio
 .vs/
+.vscode/
 *.user
 *.suo
+*.slnLaunch.user
 
 # Environment & secrets
 appsettings.Development.json
@@ -36,6 +38,12 @@ Thumbs.db
 *.tmp
 *.http
 *.Backup
+*.dbmdl
+
+# Build artifacts and local reports
+.artifacts/
+*.build.log
+*-build.log
 
 # User Secrets
 secrets.json

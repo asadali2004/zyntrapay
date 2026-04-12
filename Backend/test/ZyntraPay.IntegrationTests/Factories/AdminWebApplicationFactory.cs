@@ -102,6 +102,28 @@ internal class FakeUserServiceClient : IUserServiceClient
 
     public Task<KycSubmissionDto?> GetKycByIdAsync(int kycId)
         => Task.FromResult(_data.PendingKycs.FirstOrDefault(k => k.Id == kycId));
+
+    public Task<AdminUserProfileDto?> GetProfileAsync(int authUserId)
+    {
+        var user = _data.Users.FirstOrDefault(u => u.Id == authUserId);
+        if (user == null)
+            return Task.FromResult<AdminUserProfileDto?>(null);
+
+        return Task.FromResult<AdminUserProfileDto?>(new AdminUserProfileDto
+        {
+            Id = authUserId,
+            AuthUserId = authUserId,
+            FullName = user.Email,
+            DateOfBirth = DateTime.UtcNow.Date,
+            Address = string.Empty,
+            City = string.Empty,
+            State = string.Empty,
+            PinCode = string.Empty
+        });
+    }
+
+    public Task<KycSubmissionDto?> GetKycByAuthUserIdAsync(int authUserId)
+        => Task.FromResult(_data.PendingKycs.FirstOrDefault(k => k.AuthUserId == authUserId));
 }
 
 internal class FakeAuthServiceClient : IAuthServiceClient

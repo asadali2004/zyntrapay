@@ -140,7 +140,7 @@ public class WalletServiceImpl : IWalletService
         if (senderWallet.Balance < dto.Amount)
             return (false, "Insufficient balance.");
 
-        Wallet receiverWallet = null;
+        Wallet? receiverWallet = null;
         if (dto.ReceiverAuthUserId.HasValue && dto.ReceiverAuthUserId.Value != 0)
         {
             if (authUserId == dto.ReceiverAuthUserId.Value)

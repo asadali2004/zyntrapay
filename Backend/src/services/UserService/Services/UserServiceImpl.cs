@@ -62,6 +62,60 @@ public class UserServiceImpl : IUserService
         return (true, dto, "Profile fetched successfully.");
     }
 
+    public async Task<(bool Success, UserIdentityDto? Data, string Message)> GetIdentityAsync(int authUserId)
+    {
+        var profile = await _repo.GetProfileByAuthUserIdAsync(authUserId);
+        if (profile == null)
+            return (false, null, "Profile not found.");
+
+        return (true, new UserIdentityDto
+        {
+            AuthUserId = profile.AuthUserId,
+            FullName = profile.FullName
+        }, "Identity fetched successfully.");
+    }
+
+    public async Task<(bool Success, ProfileResponseDto? Data, string Message)> GetProfileByAuthUserIdAsync(int authUserId)
+    {
+        var profile = await _repo.GetProfileByAuthUserIdAsync(authUserId);
+        if (profile == null)
+            return (false, null, "Profile not found.");
+
+        var dto = new ProfileResponseDto
+        {
+            Id = profile.Id,
+            AuthUserId = profile.AuthUserId,
+            FullName = profile.FullName,
+            DateOfBirth = profile.DateOfBirth,
+            Address = profile.Address,
+            City = profile.City,
+            State = profile.State,
+            PinCode = profile.PinCode
+        };
+
+        return (true, dto, "Profile fetched successfully.");
+    }
+
+    public async Task<(bool Success, KycResponseDto? Data, string Message)> GetKycByAuthUserIdAsync(int authUserId)
+    {
+        var kyc = await _repo.GetKycByAuthUserIdAsync(authUserId);
+        if (kyc == null)
+            return (false, null, "No KYC submission found.");
+
+        var dto = new KycResponseDto
+        {
+            Id = kyc.Id,
+            AuthUserId = kyc.AuthUserId,
+            DocumentType = kyc.DocumentType,
+            DocumentNumber = kyc.DocumentNumber,
+            Status = kyc.Status,
+            RejectionReason = kyc.RejectionReason,
+            SubmittedAt = kyc.SubmittedAt
+        };
+
+        return (true, dto, "KYC status fetched.");
+    }
+
     public async Task<(bool Success, string Message)> SubmitKycAsync(SubmitKycDto dto)
     {
         _logger.LogInformation("KYC submission attempt for AuthUserId: {Id}", dto.AuthUserId); 

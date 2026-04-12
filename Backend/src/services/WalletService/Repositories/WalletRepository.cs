@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using WalletService.Data;
 using WalletService.Models;
 
@@ -15,6 +15,9 @@ public class WalletRepository : IWalletRepository
 
     public async Task<Wallet?> GetWalletByAuthUserIdAsync(int authUserId)
         => await _context.Wallets.FirstOrDefaultAsync(w => w.AuthUserId == authUserId);
+
+    public async Task<Wallet?> GetWalletByUserEmailAsync(string email)
+        => await _context.Wallets.FirstOrDefaultAsync(w => w.UserEmail == email);
 
     public async Task<Wallet?> GetWalletByIdAsync(int walletId)
         => await _context.Wallets.FirstOrDefaultAsync(w => w.Id == walletId);

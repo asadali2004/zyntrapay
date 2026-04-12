@@ -1,0 +1,80 @@
+<header class="header" [class.header--scrolled]="isScrolled()">
+  <div class="container">
+    <nav class="navbar">
+      <!-- Logo -->
+      <a class="logo" routerLink="/" (click)="closeMobileMenu()">
+        <div class="logo__mark">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="10" fill="url(#logoGrad)"/>
+            <path d="M22 11H14a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                <stop offset="0%" stop-color="#6c63ff"/>
+                <stop offset="100%" stop-color="#00d4ff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo__text">ZyntraPay</span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <ul class="nav-links">
+        <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
+        <li><a routerLink="/about" routerLinkActive="active">About</a></li>
+        <li><a routerLink="/contact" routerLinkActive="active">Contact</a></li>
+        @if (currentUser) {
+          @if (isAdmin) {
+            <li><a routerLink="/admin/dashboard" routerLinkActive="active">Admin Panel</a></li>
+          } @else {
+            <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+          }
+        }
+      </ul>
+
+      <!-- Desktop Actions -->
+      <div class="nav-actions">
+        @if (!currentUser) {
+          <a routerLink="/login" class="btn-ghost nav-btn">Sign In</a>
+          <a routerLink="/register" class="btn-primary nav-btn">Get Started</a>
+        } @else {
+          <div class="user-pill">
+            <div class="user-pill__avatar">{{ (currentUser.fullName || currentUser.email || 'U').charAt(0).toUpperCase() }}</div>
+            <span class="user-pill__name">{{ (currentUser.fullName || currentUser.email || 'User').split(' ')[0] }}</span>
+          </div>
+          <button class="btn-ghost nav-btn logout-btn" (click)="logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Logout
+          </button>
+        }
+      </div>
+
+      <!-- Mobile Hamburger -->
+      <button class="hamburger" (click)="toggleMobileMenu()" [class.open]="mobileMenuOpen()" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.open]="mobileMenuOpen()">
+    <ul>
+      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMobileMenu()">Home</a></li>
+      <li><a routerLink="/about" routerLinkActive="active" (click)="closeMobileMenu()">About</a></li>
+      <li><a routerLink="/contact" routerLinkActive="active" (click)="closeMobileMenu()">Contact</a></li>
+      @if (currentUser) {
+        @if (isAdmin) {
+          <li><a routerLink="/admin/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">Admin Panel</a></li>
+        } @else {
+          <li><a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">Dashboard</a></li>
+        }
+        <li><button class="mobile-logout" (click)="logout()">Sign Out</button></li>
+      } @else {
+        <li><a routerLink="/login" (click)="closeMobileMenu()" class="mobile-login">Sign In</a></li>
+        <li><a routerLink="/register" (click)="closeMobileMenu()" class="mobile-register">Get Started</a></li>
+      }
+    </ul>
+  </div>
+</header>

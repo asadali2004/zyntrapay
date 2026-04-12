@@ -11,6 +11,7 @@ public interface IAuthService
     Task<List<UserSummaryDto>> GetAllUsersAsync();
     Task<(bool Success, string Message)> ToggleUserStatusAsync(int userId);
     Task<(bool Success, string? Data, string Message)> GetUserEmailAsync(int authUserId);
+    Task<(bool Success, UserSummaryDto? Data, string Message)> GetUserByEmailAsync(string email);
     Task<(bool Success, string Message)> SendOtpAsync(SendOtpRequestDto dto);
     Task<(bool Success, string Message)> VerifyOtpAsync(VerifyOtpRequestDto dto);
     Task<(bool Success, string Message)> UpdatePhoneAsync(int userId, UpdatePhoneDto dto);

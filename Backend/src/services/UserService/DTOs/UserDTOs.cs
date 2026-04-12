@@ -40,6 +40,12 @@ public class ProfileResponseDto
     public string PinCode { get; set; } = string.Empty;
 }
 
+public class UserIdentityDto
+{
+    public int AuthUserId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+}
+
 public class SubmitKycDto
 {
     [Required]

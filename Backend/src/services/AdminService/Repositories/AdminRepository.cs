@@ -15,6 +15,12 @@ public class AdminRepository : IAdminRepository
     public async Task AddActionAsync(AdminAction action)
         => await _context.AdminActions.AddAsync(action);
 
+    public async Task<List<AdminAction>> GetRecentActionsAsync(int take)
+        => await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsNoTracking(_context.AdminActions)
+                .OrderByDescending(a => a.PerformedAt)
+                .Take(take));
+
     public async Task SaveChangesAsync()
         => await _context.SaveChangesAsync();
 }

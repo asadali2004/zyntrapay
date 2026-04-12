@@ -1,0 +1,130 @@
+.phone-update-page {
+  min-height: calc(100vh - 160px);
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top left, rgba(0, 224, 255, 0.12), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(108, 99, 255, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(5, 6, 12, 0.98) 0%, rgba(10, 11, 20, 1) 100%);
+}
+
+.phone-update-card {
+  width: min(100%, 440px);
+  padding: 2rem;
+  border-radius: 24px;
+  background: rgba(19, 20, 28, 0.92);
+  border: 1px solid rgba(108, 99, 255, 0.22);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+}
+
+.phone-update-card__header {
+  margin-bottom: 1.5rem;
+}
+
+.phone-update-card__eyebrow {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: #8d82ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.phone-update-card__header h1 {
+  margin: 0 0 0.5rem;
+  color: #f3f5ff;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.02;
+}
+
+.phone-update-card__header p {
+  margin: 0;
+  color: #9aa3b6;
+  line-height: 1.6;
+}
+
+.phone-update-card__account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f3f5ff;
+}
+
+.phone-update-card__label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #8f98aa;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.form-group {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #d7dbee;
+}
+
+input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f7f8fc;
+  border: 1px solid rgba(146, 160, 190, 0.32);
+  border-radius: 14px;
+  font: inherit;
+
+  &::placeholder {
+    color: #7f889b;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(108, 99, 255, 0.7);
+    box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.12);
+  }
+}
+
+input.error {
+  border-color: #ff6b81;
+}
+
+.error-message {
+  color: #ff8f9f;
+  font-size: 0.875rem;
+}
+
+.phone-update-card__actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .phone-update-page {
+    padding: 1rem;
+  }
+
+  .phone-update-card {
+    padding: 1.5rem;
+  }
+
+  .phone-update-card__account,
+  .phone-update-card__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

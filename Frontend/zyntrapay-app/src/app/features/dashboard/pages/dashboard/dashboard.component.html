@@ -1,0 +1,542 @@
+<div class="dashboard-layout animate-fade-in">
+  <!-- Sidebar Navigation -->
+  <aside class="dashboard-sidebar glass-card">
+    <div class="sidebar-user">
+      <div class="avatar">{{ userInitials }}</div>
+      <div class="user-details">
+        <span class="user-name">{{ profile()?.fullName || currentUser?.email?.split('@')[0] || 'User' }}</span>
+        <span class="badge" [ngClass]="hasKyc() ? 'badge-success' : 'badge-warning'">
+          {{ kycStatusLabel }}
+        </span>
+      </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a class="nav-item" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Overview
+      </a>
+      <ng-container *ngIf="hasWallet()">
+        <a class="nav-item" [class.active]="activeTab() === 'wallet'" (click)="activeTab.set('wallet')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+          Wallet & Actions
+        </a>
+        <a class="nav-item" [class.active]="activeTab() === 'transactions'" (click)="activeTab.set('transactions')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          Transactions
+        </a>
+        <a class="nav-item" [class.active]="activeTab() === 'rewards'" (click)="activeTab.set('rewards')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+          Rewards
+        </a>
+      </ng-container>
+      <a class="nav-item" [class.active]="activeTab() === 'settings'" (click)="activeTab.set('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Profile Settings
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="dashboard-main">
+    <header class="dashboard-topbar glass-card">
+      <div class="topbar-title">
+        <h1 class="font-heading">
+          {{ activeTab() === 'overview' ? 'Account Workspace' :
+             activeTab() === 'wallet' ? 'Wallet Hub' :
+             activeTab() === 'transactions' ? 'Transaction History' :
+             activeTab() === 'rewards' ? 'Your Rewards' : 'User Settings' }}
+        </h1>
+        <p class="text-muted text-sm mt-xs" *ngIf="activeTab() === 'overview'">Manage your ZyntraPay account from one place.</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-icon bell-btn animate-float-slow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span class="notification-dot"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="dashboard-content-area">
+      <!-- OVERVIEW TAB -->
+      <ng-container *ngIf="activeTab() === 'overview'">
+        <!-- Onboarding: Create Profile -->
+        <section *ngIf="!hasProfile() && !profileLoading()" class="onboarding-section animate-fade-up">
+          <div class="glass-card onboarding-card">
+            <div class="onboarding-card__header">
+              <span class="eyebrow">Step 1 of 3</span>
+              <h2 class="font-heading mb-md">Complete your profile</h2>
+              <p class="text-muted mb-lg">We need your personal details before KYC and wallet setup. This matches the backend profile contract exactly.</p>
+              <div class="checklist-card">
+                <div class="checklist-card__item">Use your legal name exactly as it appears on your ID.</div>
+                <div class="checklist-card__item">Date of birth and PIN code must match your KYC document.</div>
+              </div>
+            </div>
+            <form [formGroup]="profileForm" (ngSubmit)="submitProfile()" class="onboarding-form">
+              <div class="form-group mb-sm">
+                <label>Full Name</label>
+                <input type="text" formControlName="fullName" class="form-control" placeholder="Your full legal name" />
+              </div>
+              <div class="form-group mb-sm">
+                <label>Date of Birth</label>
+                <input type="date" formControlName="dateOfBirth" class="form-control" [max]="todayDate" />
+                <span class="field-hint field-hint--error" *ngIf="profileForm.get('dateOfBirth')?.touched && profileForm.get('dateOfBirth')?.hasError('futureDate')">
+                  Date of birth cannot be in the future.
+                </span>
+              </div>
+              <div class="form-group mb-sm">
+                <label>Address</label>
+                <input type="text" formControlName="address" class="form-control" placeholder="Street address" />
+              </div>
+              <div class="form-group mb-sm">
+                <label>City</label>
+                <input type="text" formControlName="city" class="form-control" placeholder="City" />
+              </div>
+              <div class="form-row">
+                <div class="form-group mb-sm">
+                  <label>State</label>
+                  <input type="text" formControlName="state" class="form-control" placeholder="State" />
+                </div>
+                <div class="form-group mb-sm">
+                  <label>Pin Code</label>
+                  <input type="text" formControlName="pinCode" class="form-control" placeholder="6 digits" maxlength="6" inputmode="numeric" (input)="enforcePinCode($event)" />
+                  <span class="field-hint field-hint--error" *ngIf="pinCodeControl?.touched && pinCodeControl?.invalid">
+                    PIN code must be exactly 6 digits.
+                  </span>
+                </div>
+              </div>
+              <div class="info-chip-row">
+                <span class="info-chip">Email: {{ currentUser?.email }}</span>
+                <span class="info-chip">PIN must be 6 digits</span>
+              </div>
+              <button type="submit" class="btn-primary onboarding-submit" [disabled]="profileSubmitting()">
+                {{ profileSubmitting() ? 'Creating Profile...' : 'Save Profile' }}
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- Onboarding: KYC -->
+        <section *ngIf="hasProfile() && !hasKyc() && !kycLoading()" class="onboarding-section animate-fade-up">
+          <div class="glass-card onboarding-card">
+            <div class="onboarding-card__header">
+              <span class="eyebrow">Step 2 of 3</span>
+              <h2 class="font-heading mb-md">Submit KYC</h2>
+              <p class="text-muted mb-lg">Your profile is saved. Submit a document so your account can move into the verified state.</p>
+              <div class="checklist-card">
+                <div class="checklist-card__item">Choose the same document you will use for verification review.</div>
+                <div class="checklist-card__item">Document number should be entered without spaces unless your ID includes them.</div>
+              </div>
+            </div>
+            <form [formGroup]="kycForm" (ngSubmit)="submitKyc()" class="onboarding-form">
+              <div class="form-group mb-sm">
+                <label>Document Type</label>
+                <div class="select-wrap">
+                  <select formControlName="documentType" class="form-control form-control--select">
+                    <option value="Aadhaar">Aadhaar</option>
+                    <option value="PAN">PAN</option>
+                    <option value="Passport">Passport</option>
+                  </select>
+                  <span class="select-wrap__icon" aria-hidden="true">&#9662;</span>
+                </div>
+              </div>
+              <div class="form-group mb-sm">
+                <label>Document Number</label>
+                <input type="text" formControlName="documentNumber" class="form-control" placeholder="Enter your document number" />
+              </div>
+              <div class="info-chip-row">
+                <span class="info-chip">Minimum 8 characters</span>
+                <span class="info-chip">Status updates appear here after review</span>
+              </div>
+              <button type="submit" class="btn-primary onboarding-submit" [disabled]="kycSubmitting()">
+                {{ kycSubmitting() ? 'Submitting KYC...' : 'Submit KYC' }}
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- Onboarding: Create Wallet -->
+        <section *ngIf="canShowWalletSetup && !hasWallet() && !walletLoading()" class="onboarding-section animate-fade-up">
+          <div class="glass-card onboarding-card onboarding-card--center">
+            <span class="eyebrow">Final Step</span>
+            <h2 class="font-heading mb-md">Activate your wallet</h2>
+            <p class="text-muted mb-lg">Your profile is ready. Create your wallet to enable transfers, top-ups, and rewards.</p>
+            <div class="info-chip-row centered">
+              <span class="info-chip">Wallet activation is instant after approval-ready onboarding</span>
+              <span class="info-chip">Wallet starts at zero balance</span>
+            </div>
+            <p class="wallet-note text-muted">If the wallet already exists from an earlier session, we will reconnect it automatically.</p>
+            <button class="btn-primary" (click)="createWallet()" [disabled]="walletSubmitting()">
+               {{ walletSubmitting() ? 'Activating...' : 'Create Wallet Now' }}
+            </button>
+          </div>
+        </section>
+
+        <!-- Active Overview Stats -->
+        <ng-container *ngIf="hasProfile() && hasWallet() && !walletLoading()">
+          <section class="stats-section animate-slide-right">
+            <div class="stats-grid">
+              <div class="glass-card stat-card">
+                <div class="stat-icon stat-icon--primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ formatCurrency(wallet()?.balance) }}</h3>
+                  <p>Total Balance</p>
+                </div>
+              </div>
+              <div class="glass-card stat-card">
+                <div class="stat-icon stat-icon--accent">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ transactions().length }}</h3>
+                  <p>Recent Transactions</p>
+                </div>
+              </div>
+              <div class="glass-card stat-card">
+                <div class="stat-icon stat-icon--warning">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/></svg>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ (rewards()?.totalPoints | number) || '0' }}</h3>
+                  <p>Reward Points ({{ rewards()?.tier || 'Bronze' }})</p>
+                </div>
+              </div>
+              <div class="glass-card stat-card">
+                <div class="stat-icon stat-icon--success">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div class="stat-info">
+                  <h3>Active</h3>
+                  <p>Wallet Status</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="dashboard-grid mt-xl animate-fade-up">
+            <!-- Quick Actions -->
+            <section class="actions-section">
+              <h2 class="font-heading text-lg mb-md">Quick Actions</h2>
+              <div class="actions-grid">
+                <button class="glass-card action-card" (click)="openSendMoneyModal()">
+                  <div class="action-icon text-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
+                  <h3>Send Money</h3>
+                  <p class="text-xs text-muted">Verify the recipient, then transfer funds securely.</p>
+                </button>
+                <button class="glass-card action-card" (click)="topUpOpen.set(true)">
+                  <div class="action-icon text-accent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+                  <h3>Add Funds</h3>
+                  <p class="text-xs text-muted">Top up via cards or net banking.</p>
+                </button>
+              </div>
+            </section>
+            
+            <!-- Cards Mockup -->
+            <section class="cards-section">
+              <h2 class="font-heading text-lg mb-md">Virtual Card</h2>
+              <div class="virtual-card glass-card">
+                <div class="card-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg></div>
+                <div class="card-number">**** **** **** 4821</div>
+                <div class="card-bottom">
+                  <div>
+                    <div class="card-label">Card Holder</div>
+                    <div class="card-value">{{ profile()?.fullName || 'User Name' }}</div>
+                  </div>
+                  <div>
+                    <div class="card-label">Expires</div>
+                    <div class="card-value">12/28</div>
+                  </div>
+                  <div class="card-logo">Zyntra</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </ng-container>
+      </ng-container>
+
+      <!-- WALLET TAB -->
+      <ng-container *ngIf="activeTab() === 'wallet'">
+        <section class="wallet-tab animate-fade-in">
+          <div class="glass-card p-xl text-center mb-lg">
+             <div class="stat-icon stat-icon--primary mx-auto mb-md" style="width: 80px; height: 80px; font-size: 2.5rem; margin-left: auto; margin-right: auto; justify-content: center; display: flex; align-items: center; border-radius: 50%;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="40"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+             </div>
+             <h2 class="font-heading text-lg">Available Balance</h2>
+             <h1 class="gradient-text" style="font-size: 3.5rem;">{{ formatCurrency(wallet()?.balance) }}</h1>
+             <div class="mt-lg flex justify-center gap-md" style="display:flex; justify-content: center;">
+                <button class="btn-primary" (click)="topUpOpen.set(true)">Top Up</button>
+                <button class="btn-secondary" (click)="openSendMoneyModal()">Transfer</button>
+             </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- TRANSACTIONS TAB -->
+      <ng-container *ngIf="activeTab() === 'transactions'">
+        <section class="transactions-section animate-fade-in">
+          <div class="glass-card transactions-list">
+            <div *ngIf="transactions().length === 0" class="text-muted p-md text-center">
+              No recent transactions found.
+            </div>
+            <div class="transaction-item" *ngFor="let tx of transactions()">
+              <div class="transaction-icon" [ngClass]="'type-' + (getTxIcon(tx.type) === 'credit' ? 'in' : 'out')">
+                <svg *ngIf="getTxIcon(tx.type) === 'credit'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                <svg *ngIf="getTxIcon(tx.type) === 'debit'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              </div>
+              <div class="transaction-details">
+                <h4>{{ tx.description || tx.type }}</h4>
+                <p>{{ formatDateTimeIst(tx.createdAt) }}</p>
+              </div>
+              <div class="transaction-amount" [ngClass]="getTxIcon(tx.type) === 'credit' ? 'positive' : 'negative'">
+                {{ getTxIcon(tx.type) === 'credit' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+      
+      <!-- REWARDS TAB -->
+      <ng-container *ngIf="activeTab() === 'rewards'">
+         <section class="rewards-tab animate-fade-in">
+           <div class="dashboard-grid">
+              <div class="glass-card p-lg text-center" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                 <div class="stat-icon stat-icon--warning mb-md" style="width: 80px; height: 80px; margin: 0 auto; display: flex;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="40" height="40"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/></svg>
+                 </div>
+                 <h3 class="font-heading">Your Reward Points</h3>
+                 <h1 class="gradient-text mt-sm" style="font-size: 3rem;">{{ (rewards()?.totalPoints | number) || '0' }}</h1>
+                 <p class="text-muted mt-md">You are currently on the <strong class="text-warning">{{ rewards()?.tier || 'Bronze' }}</strong> tier.</p>
+              </div>
+              <div class="glass-card p-lg">
+                 <h3 class="font-heading mb-md">How to earn points?</h3>
+                 <ul class="text-muted" style="line-height: 2; padding-left: 20px;">
+                    <li>Every qualifying transfer contributes toward your points balance.</li>
+                    <li>Large wallet top-ups help users progress faster through tiers.</li>
+                    <li>Referral and milestone rewards can be enabled in future campaigns.</li>
+                 </ul>
+                 <button class="btn-outline w-full mt-lg">Redeem Points (Coming Soon)</button>
+              </div>
+           </div>
+         </section>
+      </ng-container>
+
+      <!-- SETTINGS TAB -->
+      <ng-container *ngIf="activeTab() === 'settings'">
+         <section class="settings-tab animate-fade-in">
+            <div class="dashboard-grid">
+               <!-- View Profile details -->
+               <div class="glass-card p-lg">
+                  <h3 class="font-heading mb-md">Profile Information</h3>
+                  <div *ngIf="hasProfile()">
+                     <div class="info-chip-row mb-md">
+                        <span class="info-chip" [ngClass]="hasProfile() ? 'info-chip--success' : ''">{{ hasProfile() ? 'Profile ready' : 'Profile missing' }}</span>
+                        <span class="info-chip" [ngClass]="hasKyc() ? 'info-chip--success' : 'info-chip--warning'">{{ kycStatusLabel }}</span>
+                        <span class="info-chip" [ngClass]="currentUser?.phoneUpdateRequired ? 'info-chip--warning' : 'info-chip--success'">
+                           {{ currentUser?.phoneUpdateRequired ? 'Phone update pending' : 'Phone verified' }}
+                        </span>
+                     </div>
+                     <div class="form-group mb-md">
+                        <label class="text-xs text-muted text-uppercase">Full Name</label>
+                        <div class="text-md">{{ profile()?.fullName }}</div>
+                     </div>
+                     <div class="form-group mb-md">
+                        <label class="text-xs text-muted text-uppercase">Email</label>
+                        <div class="text-md">{{ currentUser?.email }}</div>
+                     </div>
+                     <div class="form-group mb-md">
+                        <label class="text-xs text-muted text-uppercase">Date Of Birth</label>
+                        <div class="text-md">{{ formatDate(profile()?.dateOfBirth) }}</div>
+                     </div>
+                     <div class="form-group mb-md">
+                        <label class="text-xs text-muted text-uppercase">Location</label>
+                        <div class="text-md">{{ profile()?.city }}, {{ profile()?.state }}</div>
+                     </div>
+                     <div class="form-group mb-md">
+                        <label class="text-xs text-muted text-uppercase">Address</label>
+                        <div class="text-md">{{ profile()?.address }}, {{ profile()?.city }}, {{ profile()?.state }} {{ profile()?.pinCode }}</div>
+                     </div>
+                  </div>
+                  <div *ngIf="!hasProfile()" class="text-muted text-sm">
+                     You have not created a profile yet. Go to Overview to complete onboarding.
+                  </div>
+               </div>
+
+               <!-- KYC and Security -->
+               <div class="glass-card p-lg">
+                  <h3 class="font-heading mb-md">Security & Verification</h3>
+                  <div class="divider mb-md"></div>
+                  <div class="info-chip-row mb-md">
+                     <span class="info-chip">Recovery tools</span>
+                     <span class="info-chip">IST timestamps</span>
+                     <span class="info-chip">10-digit phone</span>
+                  </div>
+                  <div class="settings-stack">
+                     <div class="flex justify-between items-center mb-md">
+                        <div>
+                           <div class="font-weight-600">KYC Status</div>
+                           <div class="text-xs text-muted">Identity verification workflow</div>
+                        </div>
+                        <span class="badge" [ngClass]="hasKyc() ? 'badge-success' : 'badge-warning'">{{ kycStatusLabel }}</span>
+                     </div>
+                     <div class="settings-item">
+                        <div>
+                           <div class="font-weight-600">Registered Phone</div>
+                           <div class="text-xs text-muted">{{ currentUser?.phoneUpdateRequired ? 'Phone update pending' : 'Keep your recovery number current' }}</div>
+                        </div>
+                        <button class="btn-outline" (click)="goToPhoneUpdate()">Update Phone</button>
+                     </div>
+                  <div class="settings-item">
+                     <div>
+                        <div class="font-weight-600">Password Reset</div>
+                        <div class="text-xs text-muted">Send a reset OTP to your email. In Docker, open Mailpit to view it.</div>
+                     </div>
+                     <button class="btn-outline" (click)="requestPasswordReset()" [disabled]="passwordResetSending()">
+                        {{ passwordResetSending() ? 'Sending...' : 'Send Reset Code' }}
+                     </button>
+                  </div>
+                  <div class="settings-item">
+                     <div>
+                        <div class="font-weight-600">Complete Password Reset</div>
+                        <div class="text-xs text-muted">Enter the OTP from your email and choose a new password.</div>
+                     </div>
+                     <button class="btn-outline" (click)="resetPasswordOpen.set(true)">Open Reset Form</button>
+                  </div>
+                  </div>
+                  <div class="divider my-md"></div>
+                  <button class="btn-danger w-full mt-lg" (click)="logout()">Sign Out of Account</button>
+               </div>
+            </div>
+         </section>
+      </ng-container>
+    </div>
+  </main>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" *ngIf="sendMoneyOpen()" (click)="sendMoneyOpen.set(false)">
+  <div class="glass-card modal-content modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="font-heading">Send Money</h2>
+      <button class="btn-icon" (click)="sendMoneyOpen.set(false)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form [formGroup]="sendMoneyForm" (ngSubmit)="submitSendMoney()">
+      <div class="transfer-step">
+        <span class="transfer-step__label">Step 1</span>
+        <div>
+          <h3 class="transfer-step__title">Verify recipient</h3>
+          <p class="transfer-step__text">We look up the recipient first so you can confirm who will receive the transfer.</p>
+        </div>
+      </div>
+      <div class="form-group mb-md">
+        <label class="form-label">Recipient Email</label>
+        <input type="email" formControlName="receiverEmail" class="form-control form-input" placeholder="user@example.com" (input)="resetRecipientPreview()">
+      </div>
+      <button type="button" class="btn-outline w-full mb-md" (click)="verifyRecipient()" [disabled]="recipientLookupLoading()">
+        {{ recipientLookupLoading() ? 'Verifying...' : 'Verify Recipient' }}
+      </button>
+      <div class="recipient-preview" *ngIf="recipientPreview() as recipient">
+        <div class="recipient-preview__header">
+          <div>
+            <span class="transfer-step__label">Recipient Found</span>
+            <h3 class="recipient-preview__title">{{ displayRecipientName(recipient) }}</h3>
+            <p class="recipient-preview__hint">{{ getRecipientVerificationLabel(recipient) }}</p>
+          </div>
+          <span class="badge" [ngClass]="recipient.isActive ? 'badge-success' : 'badge-error'">
+            {{ recipient.isActive ? 'Active' : 'Suspended' }}
+          </span>
+        </div>
+      </div>
+      <div class="field-hint field-hint--error" *ngIf="recipientLookupError()">{{ recipientLookupError() }}</div>
+      <div class="form-group mb-md">
+        <label class="form-label">Amount (INR)</label>
+        <input type="number" formControlName="amount" class="form-control form-input" placeholder="0.00" step="0.01">
+      </div>
+      <div class="form-group mb-lg">
+        <label class="form-label">Description (Optional)</label>
+        <input type="text" formControlName="description" class="form-control form-input" placeholder="What's this for?">
+      </div>
+      <div class="modal-actions flex justify-between gap-md">
+        <button type="button" class="btn-outline w-full" (click)="sendMoneyOpen.set(false)">Cancel</button>
+        <button type="submit" class="btn-primary w-full" [disabled]="sendMoneyForm.invalid || sendLoading() || !recipientLookupVerified()">
+          {{ sendLoading() ? 'Sending...' : 'Confirm & Send' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="topUpOpen()" (click)="topUpOpen.set(false)">
+  <div class="glass-card modal-content modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="font-heading">Top Up Wallet</h2>
+      <button class="btn-icon" (click)="topUpOpen.set(false)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form [formGroup]="topUpForm" (ngSubmit)="submitTopUp()">
+      <div class="form-group mb-md">
+        <label class="form-label">Payment Method</label>
+        <div class="select-wrap">
+          <select formControlName="paymentMethod" class="form-control form-input form-control--select">
+            <option value="UPI">UPI</option>
+            <option value="Net Banking">Net Banking</option>
+            <option value="Card">Credit / Debit Card</option>
+          </select>
+          <span class="select-wrap__icon" aria-hidden="true">&#9662;</span>
+        </div>
+      </div>
+      <div class="form-group mb-lg">
+        <label class="form-label">Amount (INR)</label>
+        <input type="number" formControlName="amount" class="form-control form-input" placeholder="10.00" step="0.01">
+      </div>
+      <div class="modal-actions flex justify-between gap-md">
+        <button type="button" class="btn-outline w-full" (click)="topUpOpen.set(false)">Cancel</button>
+        <button type="submit" class="btn-primary w-full" [disabled]="topUpForm.invalid || topUpLoading()">
+          {{ topUpLoading() ? 'Processing...' : 'Add Funds' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="resetPasswordOpen()" (click)="resetPasswordOpen.set(false)">
+  <div class="glass-card modal-content modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="font-heading">Reset Password</h2>
+      <button class="btn-icon" (click)="resetPasswordOpen.set(false)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form [formGroup]="resetPasswordForm" (ngSubmit)="submitResetPassword()">
+      <div class="form-group mb-md">
+        <label class="form-label">Registered Email</label>
+        <input type="text" class="form-control form-input" [value]="currentUser?.email || ''" readonly>
+      </div>
+      <div class="form-group mb-md">
+        <label class="form-label">OTP Code</label>
+        <input type="tel" formControlName="otp" class="form-control form-input" placeholder="Enter 6-digit OTP from your email" inputmode="numeric" maxlength="6" (input)="enforceOtpInput($event)">
+      </div>
+      <div class="form-group mb-md">
+        <label class="form-label">New Password</label>
+        <input type="password" formControlName="newPassword" class="form-control form-input" placeholder="Minimum 6 characters">
+      </div>
+      <div class="form-group mb-lg">
+        <label class="form-label">Confirm New Password</label>
+        <input type="password" formControlName="confirmPassword" class="form-control form-input" placeholder="Repeat the new password">
+        <span class="field-hint field-hint--error" *ngIf="resetPasswordForm.touched && resetPasswordForm.hasError('passwordMismatch')">
+          New password and confirm password must match.
+        </span>
+      </div>
+      <div class="modal-actions flex justify-between gap-md">
+        <button type="button" class="btn-outline w-full" (click)="resetPasswordOpen.set(false)">Cancel</button>
+        <button type="submit" class="btn-primary w-full" [disabled]="resetPasswordForm.invalid || resetPasswordSubmitting()">
+          {{ resetPasswordSubmitting() ? 'Updating...' : 'Update Password' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

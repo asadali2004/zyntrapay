@@ -1,0 +1,45 @@
+<div class="phone-update-page">
+  <div class="phone-update-card">
+    <div class="phone-update-card__header">
+      <span class="phone-update-card__eyebrow">Account Security</span>
+      <h1>Update your phone number</h1>
+      <p>Use a valid 10-digit mobile number so recovery and verification work properly across your account.</p>
+    </div>
+
+    <div class="phone-update-card__account" *ngIf="currentUser">
+      <div>
+        <span class="phone-update-card__label">Signed in as</span>
+        <strong>{{ currentUser.email }}</strong>
+      </div>
+      <span class="badge" [ngClass]="currentUser.phoneUpdateRequired ? 'badge-warning' : 'badge-success'">
+        {{ currentUser.phoneUpdateRequired ? 'Update required' : 'Phone verified' }}
+      </span>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="phone-number">Phone Number</label>
+        <input
+          id="phone-number"
+          type="tel"
+          formControlName="phoneNumber"
+          placeholder="9876543210"
+          inputmode="numeric"
+          maxlength="10"
+          (input)="enforcePhoneInput($event)"
+          [class.error]="form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched">
+        <span class="error-message" *ngIf="form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched">
+          Enter a valid 10-digit mobile number.
+        </span>
+      </div>
+
+      <div class="phone-update-card__actions">
+        <button type="button" class="btn-outline w-full" (click)="backToDashboard()">Back to dashboard</button>
+        <button type="submit" class="btn-primary w-full" [disabled]="loading()">
+          <span *ngIf="!loading()">Save and continue</span>
+          <span *ngIf="loading()">Saving...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

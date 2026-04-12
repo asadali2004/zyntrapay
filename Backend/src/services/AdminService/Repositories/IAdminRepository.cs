@@ -5,5 +5,6 @@ namespace AdminService.Repositories;
 public interface IAdminRepository
 {
     Task AddActionAsync(AdminAction action);
+    Task<List<AdminAction>> GetRecentActionsAsync(int take);
     Task SaveChangesAsync();
 }

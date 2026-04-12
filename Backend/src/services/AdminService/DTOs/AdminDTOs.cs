@@ -26,6 +26,18 @@ public class KycSubmissionDto
     public DateTime SubmittedAt { get; set; }
 }
 
+public class AdminUserProfileDto
+{
+    public int Id { get; set; }
+    public int AuthUserId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public DateTime DateOfBirth { get; set; }
+    public string Address { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
+    public string PinCode { get; set; } = string.Empty;
+}
+
 public class UserSummaryDto
 {
     public int Id { get; set; }
@@ -48,6 +60,16 @@ public class DashboardDto
 public class AdminActionResponseDto
 {
     public string Message { get; set; } = string.Empty;
+}
+
+public class AdminActionDto
+{
+    public int Id { get; set; }
+    public int AdminAuthUserId { get; set; }
+    public string ActionType { get; set; } = string.Empty;
+    public int TargetUserId { get; set; }
+    public string? Remarks { get; set; }
+    public DateTime PerformedAt { get; set; }
 }
 
 public class AdminErrorResponseDto

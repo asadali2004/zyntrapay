@@ -1,10 +1,13 @@
 # ZyntraPay
 
-ZyntraPay is organized with the backend source under [Backend](./Backend).
+ZyntraPay is organized with the backend source under [Backend](./Backend) and the Angular frontend under [Frontend](./Frontend).
+
+For day-to-day build and run commands, use [Documentations/22_Project_Command_Reference.md](./Documentations/22_Project_Command_Reference.md).
 
 ## Repository Layout
 
 - `Backend/` - .NET microservices backend, gateway, shared building blocks, tests, database scripts, and diagrams
+- `Frontend/` - Angular application
 - `Documentations/` - project documentation and implementation notes
 
 ## Backend Layout

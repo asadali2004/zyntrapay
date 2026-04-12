@@ -1,0 +1,394 @@
+<div class="dashboard-layout admin-dashboard-shell animate-fade-in">
+  <aside class="dashboard-sidebar glass-card">
+    <div class="sidebar-user">
+      <div class="avatar" style="background: var(--gradient-primary-glow);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+      </div>
+      <div class="user-details">
+        <span class="user-name">System Admin</span>
+        <span class="badge badge-primary">Authorized</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item" (click)="activeTab.set('overview')" [class.active]="activeTab() === 'overview'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        Overview
+      </a>
+      <a class="nav-item" (click)="activeTab.set('kyc')" [class.active]="activeTab() === 'kyc'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        KYC Reviews
+      </a>
+      <a class="nav-item" (click)="activeTab.set('users')" [class.active]="activeTab() === 'users'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        User Management
+      </a>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <button class="btn-outline w-full" (click)="logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      System Logout
+    </button>
+  </aside>
+
+  <main class="dashboard-main">
+    <header class="dashboard-topbar glass-card">
+      <div class="topbar-title">
+        <h1 class="font-heading">Admin Command Center</h1>
+        <p class="text-muted text-sm mt-xs">Manage users, KYC requests, and system operations securely.</p>
+      </div>
+      <div class="topbar-actions flex gap-md">
+        <span class="badge badge-success">System Online</span>
+      </div>
+    </header>
+
+    <div class="dashboard-content-area">
+      <div *ngIf="loading" class="glass-card p-xl text-center">
+        <div class="loader mx-auto mb-md animate-spin"></div>
+        <p class="text-muted">Loading administrative data...</p>
+      </div>
+
+      <section class="stats-section animate-slide-right" *ngIf="!loading && stats">
+        <div class="stats-grid">
+          <div class="glass-card stat-card">
+            <div class="stat-icon stat-icon--primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 class="font-heading">{{ stats.totalUsers }}</h3>
+              <p>Total registered users</p>
+            </div>
+          </div>
+
+          <div class="glass-card stat-card">
+            <div class="stat-icon stat-icon--success">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 class="font-heading">{{ stats.activeUsers }}</h3>
+              <p>Currently active accounts</p>
+            </div>
+          </div>
+
+          <div class="glass-card stat-card">
+            <div class="stat-icon stat-icon--warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 class="font-heading">{{ stats.pendingKyc }}</h3>
+              <p>Pending KYC reviews</p>
+            </div>
+          </div>
+
+          <div class="glass-card stat-card">
+            <div class="stat-icon stat-icon--accent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4"></path>
+                <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 class="font-heading">{{ stats.approvedKyc }}</h3>
+              <p>Approved verifications</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="dashboard-grid mt-xl animate-fade-up" *ngIf="!loading">
+        <section class="kyc-section" *ngIf="activeTab() === 'overview' || activeTab() === 'kyc'">
+          <div class="section-heading">
+            <h2 class="font-heading text-lg">Verification Queue</h2>
+            <span class="badge badge-warning badge-review">{{ stats?.pendingKyc ?? pendingKycs.length }} Pending</span>
+          </div>
+
+          <div class="kyc-list" *ngIf="pendingKycs.length > 0">
+            <div class="glass-card kyc-card" *ngFor="let kyc of pendingKycs">
+              <div class="review-card__top">
+                <div class="review-card__identity">
+                  <div class="avatar review-card__avatar">
+                    {{ (kyc.documentType || 'D').charAt(0) }}
+                  </div>
+                  <div>
+                    <h3 class="font-heading review-card__title">{{ kyc.documentType }} verification</h3>
+                    <p class="text-xs text-muted m-0">Auth user ID: <span class="font-mono">#{{ kyc.authUserId }}</span></p>
+                  </div>
+                </div>
+                <span class="badge badge-warning badge-review-status">Review Required</span>
+              </div>
+
+              <div class="review-card__details text-sm text-muted">
+                <div><strong>Document type:</strong> {{ kyc.documentType }}</div>
+                <div><strong>Document number:</strong> {{ maskDocumentNumber(kyc.documentNumber) }}</div>
+                <div><strong>Submitted:</strong> {{ formatSubmittedAt(kyc.submittedAt) }}</div>
+              </div>
+
+              <div class="review-card__actions">
+                <button class="btn-outline w-full" (click)="openKycReview(kyc)">Open Review</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card p-xl text-center" *ngIf="pendingKycs.length === 0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" style="color: var(--color-success); margin-bottom: 16px;">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <h3 class="font-heading mb-xs">Queue Clear</h3>
+            <p class="text-muted text-sm">No pending KYC approvals needed at this time.</p>
+          </div>
+        </section>
+
+        <section class="users-section" *ngIf="activeTab() === 'overview' || activeTab() === 'users'">
+          <div class="section-heading">
+            <h2 class="font-heading text-lg">System Users</h2>
+            <span class="badge badge-primary">{{ users.length }} shown</span>
+          </div>
+
+          <div class="glass-card users-table-shell">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>User details</th>
+                  <th>Contact</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th class="users-table__actions-head">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of users" class="users-table__row" (click)="openUserDetails(user)">
+                  <td>
+                    <div class="users-table__identity">
+                      <span class="font-weight-600 font-heading text-sm">{{ user.email }}</span>
+                      <span class="text-xs text-muted">Auth ID: {{ user.id }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="users-table__contact">
+                      <span>{{ user.phoneNumber || 'Not provided' }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="user.role === 'Admin' ? 'badge-primary' : 'badge-muted'">
+                      {{ user.role }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="user.isActive ? 'badge-success' : 'badge-error'">
+                      {{ user.isActive ? 'Active' : 'Suspended' }}
+                    </span>
+                  </td>
+                  <td>{{ formatJoinedDate(user.createdAt) }}</td>
+                  <td class="users-table__actions-cell">
+                    <button class="btn-sm" (click)="$event.stopPropagation(); toggleUserStatus(user.id)" [disabled]="statusSubmittingUserId() === user.id" [ngClass]="user.isActive ? 'btn-outline border-error text-error' : 'btn-outline border-success text-success'">
+                      {{ statusSubmittingUserId() === user.id ? 'Updating...' : (user.isActive ? 'Suspend' : 'Activate') }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="audit-section" *ngIf="activeTab() === 'overview'">
+          <div class="section-heading">
+            <h2 class="font-heading text-lg">Recent Admin Activity</h2>
+            <span class="badge badge-muted">{{ recentActions.length }} shown</span>
+          </div>
+
+          <div class="glass-card audit-list" *ngIf="recentActions.length > 0">
+            <div class="audit-item" *ngFor="let action of recentActions">
+              <div class="audit-item__top">
+                <div>
+                  <h3 class="audit-item__title">{{ formatActionLabel(action.actionType) }}</h3>
+                  <p class="audit-item__meta">
+                    Admin #{{ action.adminAuthUserId }} · Target #{{ action.targetUserId }}
+                  </p>
+                </div>
+                <span class="badge badge-primary">{{ formatAuditTime(action.performedAt) }}</span>
+              </div>
+              <p class="audit-item__remarks" *ngIf="action.remarks">{{ action.remarks }}</p>
+            </div>
+          </div>
+
+          <div class="glass-card p-xl text-center" *ngIf="recentActions.length === 0">
+            <p class="text-muted text-sm">No admin audit activity has been recorded yet.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" *ngIf="selectedKyc()" (click)="closeKycReview()">
+  <div class="glass-card modal-box admin-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3 class="font-heading">KYC Review</h3>
+        <p class="text-sm text-muted">Inspect the submission before taking an approval decision.</p>
+      </div>
+      <button class="modal-close" (click)="closeKycReview()">×</button>
+    </div>
+
+    <div class="admin-modal__grid" *ngIf="selectedKyc() as kyc">
+      <div class="admin-modal__section">
+        <span class="admin-modal__label">Auth user ID</span>
+        <div class="admin-modal__value">#{{ kyc.authUserId }}</div>
+      </div>
+      <div class="admin-modal__section">
+        <span class="admin-modal__label">Document type</span>
+        <div class="admin-modal__value">{{ kyc.documentType }}</div>
+      </div>
+      <div class="admin-modal__section">
+        <span class="admin-modal__label">Document number</span>
+        <div class="admin-modal__value">{{ maskDocumentNumber(kyc.documentNumber) }}</div>
+      </div>
+      <div class="admin-modal__section">
+        <span class="admin-modal__label">Submitted in IST</span>
+        <div class="admin-modal__value">{{ formatSubmittedAt(kyc.submittedAt) }}</div>
+      </div>
+    </div>
+
+    <form [formGroup]="rejectionForm" class="admin-modal__form">
+      <label class="form-label">Rejection reason</label>
+      <textarea class="form-control" rows="4" formControlName="rejectionReason" placeholder="Add a clear reason if this KYC should be rejected."></textarea>
+      <span class="field-error" *ngIf="rejectionReasonError">{{ rejectionReasonError }}</span>
+    </form>
+
+    <div class="admin-modal__actions" *ngIf="selectedKyc() as kyc">
+      <button class="btn-outline" (click)="closeKycReview()">Cancel</button>
+      <button class="btn-success" (click)="approveKyc(kyc.id)" [disabled]="reviewSubmitting()">
+        {{ reviewSubmitting() ? 'Processing...' : 'Approve KYC' }}
+      </button>
+      <button class="btn-danger" (click)="rejectKyc(kyc.id)" [disabled]="reviewSubmitting()">
+        {{ reviewSubmitting() ? 'Processing...' : 'Reject KYC' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="selectedUser()" (click)="closeUserDetails()">
+  <div class="glass-card modal-box admin-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3 class="font-heading">User Details</h3>
+        <p class="text-sm text-muted">Review the account before suspending or reactivating it.</p>
+      </div>
+      <button class="modal-close" (click)="closeUserDetails()">×</button>
+    </div>
+
+    <div class="admin-modal__grid" *ngIf="selectedUser() as user">
+      <div class="admin-modal__section">
+        <span class="admin-modal__label">Email</span>
+        <div class="admin-modal__value">{{ user.email }}</div>
+      </div>
+      <div class="admin-modal__section">
+        <span class="admin-modal__label">Phone</span>
+        <div class="admin-modal__value">{{ user.phoneNumber || 'Not provided' }}</div>
+      </div>
+      <div class="admin-modal__section">
+        <span class="admin-modal__label">Role</span>
+        <div class="admin-modal__value">{{ user.role }}</div>
+      </div>
+      <div class="admin-modal__section">
+        <span class="admin-modal__label">Joined in IST</span>
+        <div class="admin-modal__value">{{ formatJoinedDate(user.createdAt) }}</div>
+      </div>
+      <div class="admin-modal__section admin-modal__section--wide">
+        <span class="admin-modal__label">Current status</span>
+        <div class="admin-modal__value">
+          <span class="badge" [ngClass]="user.isActive ? 'badge-success' : 'badge-error'">
+            {{ user.isActive ? 'Active' : 'Suspended' }}
+          </span>
+        </div>
+      </div>
+      <div class="admin-modal__section admin-modal__section--wide" *ngIf="detailLoading()">
+        <span class="admin-modal__label">Loading details</span>
+        <div class="admin-modal__value text-muted">Fetching profile and KYC summary...</div>
+      </div>
+      <ng-container *ngIf="selectedUserDetails() as details">
+        <div class="admin-modal__section">
+          <span class="admin-modal__label">Full name</span>
+          <div class="admin-modal__value">{{ details.profile?.fullName || 'Not available' }}</div>
+        </div>
+        <div class="admin-modal__section">
+          <span class="admin-modal__label">Date of birth</span>
+          <div class="admin-modal__value">{{ details.profile?.dateOfBirth ? formatJoinedDate(details.profile.dateOfBirth) : 'Not available' }}</div>
+        </div>
+        <div class="admin-modal__section admin-modal__section--wide">
+          <span class="admin-modal__label">Address</span>
+          <div class="admin-modal__value">
+            {{ details.profile?.address || 'Not available' }}
+            <span *ngIf="details.profile">, {{ details.profile.city }}, {{ details.profile.state }} - {{ details.profile.pinCode }}</span>
+          </div>
+        </div>
+        <div class="admin-modal__section">
+          <span class="admin-modal__label">KYC status</span>
+          <div class="admin-modal__value">
+            <span class="badge" [ngClass]="details.kyc?.status === 'Approved' ? 'badge-success' : details.kyc?.status === 'Rejected' ? 'badge-error' : 'badge-warning'">
+              {{ details.kyc?.status || 'Not submitted' }}
+            </span>
+          </div>
+        </div>
+        <div class="admin-modal__section">
+          <span class="admin-modal__label">Document</span>
+          <div class="admin-modal__value">{{ details.kyc?.documentType || 'Not available' }}</div>
+        </div>
+        <div class="admin-modal__section admin-modal__section--wide" *ngIf="details.kyc?.rejectionReason">
+          <span class="admin-modal__label">Rejection reason</span>
+          <div class="admin-modal__value">{{ details.kyc?.rejectionReason }}</div>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="admin-modal__actions" *ngIf="selectedUser() as user">
+      <button class="btn-outline" (click)="closeUserDetails()">Close</button>
+      <button class="btn-danger" *ngIf="user.isActive" (click)="toggleUserStatus(user.id)" [disabled]="statusSubmittingUserId() === user.id">
+        {{ statusSubmittingUserId() === user.id ? 'Updating...' : 'Suspend User' }}
+      </button>
+      <button class="btn-success" *ngIf="!user.isActive" (click)="toggleUserStatus(user.id)" [disabled]="statusSubmittingUserId() === user.id">
+        {{ statusSubmittingUserId() === user.id ? 'Updating...' : 'Activate User' }}
+      </button>
+    </div>
+  </div>
+</div>

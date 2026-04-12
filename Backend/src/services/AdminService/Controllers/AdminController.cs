@@ -87,6 +87,30 @@ public class AdminController : ControllerBase
         return Ok(data);
     }
 
+    [HttpGet("actions/recent")]
+    [ProducesResponseType(typeof(List<AdminActionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminErrorResponseDto), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetRecentActions([FromQuery] int take = 10)
+    {
+        var (success, data, message) = await _adminService.GetRecentActionsAsync(take);
+        if (!success) return BadRequest(BuildErrorResponse(message));
+        return Ok(data);
+    }
+
+    [HttpGet("users/{authUserId}/details")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminErrorResponseDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserDetails(int authUserId)
+    {
+        var (success, profile, kyc, message) = await _adminService.GetUserDetailsAsync(authUserId);
+        if (!success) return NotFound(BuildErrorResponse(message));
+        return Ok(new
+        {
+            profile,
+            kyc
+        });
+    }
+
     private static AdminErrorResponseDto BuildErrorResponse(string message)
         => new()
         {

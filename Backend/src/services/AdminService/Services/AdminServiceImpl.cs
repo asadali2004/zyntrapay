@@ -119,4 +119,31 @@ public class AdminServiceImpl : IAdminService
 
         return (true, dashboard, "Dashboard fetched.");
     }
+
+    public async Task<(bool Success, List<AdminActionDto>? Data, string Message)> GetRecentActionsAsync(int take)
+    {
+        var actions = await _repo.GetRecentActionsAsync(Math.Clamp(take, 1, 50));
+        var result = actions.Select(action => new AdminActionDto
+        {
+            Id = action.Id,
+            AdminAuthUserId = action.AdminAuthUserId,
+            ActionType = action.ActionType,
+            TargetUserId = action.TargetUserId,
+            Remarks = action.Remarks,
+            PerformedAt = action.PerformedAt
+        }).ToList();
+
+        return (true, result, "Recent admin actions fetched.");
+    }
+
+    public async Task<(bool Success, AdminUserProfileDto? Profile, KycSubmissionDto? Kyc, string Message)> GetUserDetailsAsync(int authUserId)
+    {
+        var profile = await _userClient.GetProfileAsync(authUserId);
+        var kyc = await _userClient.GetKycByAuthUserIdAsync(authUserId);
+
+        if (profile == null && kyc == null)
+            return (false, null, null, "User details not found.");
+
+        return (true, profile, kyc, "User details fetched.");
+    }
 }

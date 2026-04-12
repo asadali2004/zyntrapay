@@ -48,6 +48,14 @@ using (var scope = app.Services.CreateScope())
     if (db.Database.IsRelational())
     {
         db.Database.Migrate();
+        db.Database.ExecuteSqlRaw("""
+            IF COL_LENGTH('Wallets', 'UserEmail') IS NULL
+            BEGIN
+                ALTER TABLE [Wallets]
+                ADD [UserEmail] nvarchar(150) NOT NULL
+                    CONSTRAINT [DF_Wallets_UserEmail] DEFAULT '';
+            END
+            """);
     }
     else
     {

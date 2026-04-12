@@ -44,6 +44,38 @@ public class UserController : ControllerBase
         return Ok(data);
     }
 
+    [HttpGet("identity/{authUserId}")]
+    [ProducesResponseType(typeof(UserIdentityDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetIdentity(int authUserId)
+    {
+        var (success, data, message) = await _userService.GetIdentityAsync(authUserId);
+        if (!success) return NotFound(BuildErrorResponse(message));
+        return Ok(data);
+    }
+
+    [HttpGet("admin/users/{authUserId}/profile")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ProfileResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProfileByAuthUserId(int authUserId)
+    {
+        var (success, data, message) = await _userService.GetProfileByAuthUserIdAsync(authUserId);
+        if (!success) return NotFound(BuildErrorResponse(message));
+        return Ok(data);
+    }
+
+    [HttpGet("admin/users/{authUserId}/kyc")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(KycResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetKycByAuthUserId(int authUserId)
+    {
+        var (success, data, message) = await _userService.GetKycByAuthUserIdAsync(authUserId);
+        if (!success) return NotFound(BuildErrorResponse(message));
+        return Ok(data);
+    }
+
     [HttpPost("kyc")]
     [ProducesResponseType(typeof(UserActionResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status400BadRequest)]

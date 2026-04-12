@@ -470,4 +470,23 @@ public class AuthServiceImpl : IAuthService
 
         return (true, user.Email, "Email fetched successfully.");
     }
+
+    public async Task<(bool Success, UserSummaryDto? Data, string Message)> GetUserByEmailAsync(string email)
+    {
+        var normalizedEmail = email.Trim().ToLower();
+        var user = await _repo.GetByEmailAsync(normalizedEmail);
+
+        if (user == null)
+            return (false, null, "User not found.");
+
+        return (true, new UserSummaryDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Role = user.Role,
+            IsActive = user.IsActive,
+            CreatedAt = user.CreatedAt
+        }, "User found.");
+    }
 }

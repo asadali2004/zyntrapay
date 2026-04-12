@@ -50,4 +50,38 @@ public class UserServiceClient : IUserServiceClient
             return null;
         }
     }
+
+    public async Task<AdminUserProfileDto?> GetProfileAsync(int authUserId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"/api/user/admin/users/{authUserId}/profile");
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<AdminUserProfileDto>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch
+        {
+            _logger.LogWarning("Failed to fetch profile for AuthUserId {AuthUserId}", authUserId);
+            return null;
+        }
+    }
+
+    public async Task<KycSubmissionDto?> GetKycByAuthUserIdAsync(int authUserId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"/api/user/admin/users/{authUserId}/kyc");
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<KycSubmissionDto>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch
+        {
+            _logger.LogWarning("Failed to fetch KYC for AuthUserId {AuthUserId}", authUserId);
+            return null;
+        }
+    }
 }

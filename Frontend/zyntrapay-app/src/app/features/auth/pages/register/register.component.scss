@@ -1,0 +1,294 @@
+/* Shared auth-page/left/right/logo/input-wrapper/btn-google/auth-footer-link come from login.component.scss
+   Register extends with its own overrides below */
+
+.auth-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+.auth-left {
+  position: relative;
+  background: linear-gradient(145deg, #0e0f1e 0%, #151829 50%, #1a1040 100%);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 60px;
+}
+
+.auth-left__content {
+  position: relative;
+  z-index: 1;
+  max-width: 400px;
+}
+
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  margin-bottom: 56px;
+
+  &__icon { width: 38px; height: 38px; svg { width: 100%; height: 100%; } }
+  span { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; color: #e8eaf0; }
+}
+
+.auth-left__hero {
+  margin-bottom: 40px;
+  h2 { font-size: 2.25rem; line-height: 1.15; color: #e8eaf0; margin-bottom: 14px; }
+  p  { font-size: 0.9375rem; color: #8892a4; line-height: 1.7; }
+}
+
+.perks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.perk {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: #8892a4;
+}
+
+.perk__check {
+  width: 22px;
+  height: 22px;
+  background: rgba(0,230,118,0.12);
+  border: 1px solid rgba(0,230,118,0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #00e676;
+  svg { width: 10px; height: 10px; }
+}
+
+.auth-left__decoration {
+  position: absolute; inset: 0; pointer-events: none;
+}
+
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.3;
+
+  &--1 { width: 380px; height: 380px; background: radial-gradient(circle, rgba(108,99,255,0.5), transparent 70%); bottom: -80px; right: -80px; }
+  &--2 { width: 220px; height: 220px; background: radial-gradient(circle, rgba(0,212,255,0.4), transparent 70%); top: 40px; left: -40px; }
+}
+
+.auth-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: 48px 40px;
+}
+
+.auth-form-wrap {
+  width: 100%;
+  max-width: 440px;
+}
+
+.auth-card {
+  &__header {
+    margin-bottom: 28px;
+    h1 { font-size: 1.75rem; margin-bottom: 6px; color: #e8eaf0; }
+    p  { font-size: 0.875rem; color: #8892a4; margin: 0; }
+  }
+}
+
+.input-wrapper {
+  position: relative;
+
+  .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px; height: 16px;
+    color: #5a6275;
+    pointer-events: none;
+  }
+
+  input { padding-left: 42px; padding-right: 42px; }
+
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #5a6275;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    transition: color 150ms ease;
+    svg { width: 16px; height: 16px; display: block; }
+    &:hover { color: #8892a4; }
+  }
+}
+
+.optional-label {
+  font-weight: 400;
+  color: #5a6275;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
+/* Password Strength Meter */
+.strength-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.strength-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.strength-bar {
+  height: 3px;
+  flex: 1;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  transition: background 250ms ease;
+
+  &.filled {
+    &.weak   { background: #ff4d6d; }
+    &.fair   { background: #ffb300; }
+    &.good   { background: #00d4ff; }
+    &.strong { background: #00e676; }
+  }
+}
+
+.strength-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &--weak   { color: #ff4d6d; }
+  &--fair   { color: #ffb300; }
+  &--good   { color: #00d4ff; }
+  &--strong { color: #00e676; }
+}
+
+/* Terms / Checkbox */
+.terms-group {
+  margin-bottom: 20px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: #8892a4;
+  line-height: 1.5;
+
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  a { color: #8a84ff; text-decoration: none; &:hover { color: #6c63ff; } }
+}
+
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 150ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+input[type="checkbox"]:checked + .checkbox-custom {
+  background: #6c63ff;
+  border-color: #6c63ff;
+
+  &::after {
+    content: '';
+    display: block;
+    width: 5px;
+    height: 9px;
+    border: 2px solid white;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+}
+
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 1rem;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.divider {
+  display: flex; align-items: center; gap: 14px; margin: 20px 0;
+  &::before, &::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+  span { font-size: 0.8125rem; color: #5a6275; white-space: nowrap; }
+}
+
+.btn-google {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: #e8eaf0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all 200ms ease;
+  &:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+}
+
+.auth-footer-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.875rem;
+  color: #8892a4;
+  a { color: #8a84ff; font-weight: 600; text-decoration: none; &:hover { color: #6c63ff; } }
+}
+
+@media (max-width: 900px) {
+  .auth-page { grid-template-columns: 1fr; }
+  .auth-left { display: none; }
+  .auth-right { padding: 40px 24px; min-height: 100vh; }
+}

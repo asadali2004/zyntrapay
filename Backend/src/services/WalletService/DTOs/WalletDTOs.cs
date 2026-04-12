@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WalletService.DTOs;
 
@@ -14,8 +14,7 @@ public class TopUpRequestDto
 
 public class TransferRequestDto
 {
-    [Required(ErrorMessage = "Receiver user ID is required.")]
-    public int ReceiverAuthUserId { get; set; }
+    public int? ReceiverAuthUserId { get; set; }
 
     [EmailAddress(ErrorMessage = "Receiver email must be valid.")]
     public string? ReceiverEmail { get; set; }

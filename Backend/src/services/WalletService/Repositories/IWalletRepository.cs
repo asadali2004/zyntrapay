@@ -1,10 +1,11 @@
-﻿using WalletService.Models;
+using WalletService.Models;
 
 namespace WalletService.Repositories;
 
 public interface IWalletRepository
 {
     Task<Wallet?> GetWalletByAuthUserIdAsync(int authUserId);
+    Task<Wallet?> GetWalletByUserEmailAsync(string email);
     Task<Wallet?> GetWalletByIdAsync(int walletId);
     Task<bool> WalletExistsAsync(int authUserId);
     Task AddWalletAsync(Wallet wallet);

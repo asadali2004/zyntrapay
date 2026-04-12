@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Memory;
 using Shared.Events;
 using WalletService.DTOs;
 using WalletService.Models;
@@ -127,11 +127,8 @@ public class WalletServiceImpl : IWalletService
 
     public async Task<(bool Success, string Message)> TransferAsync(int authUserId, string senderEmail, TransferRequestDto dto)
     {
-        _logger.LogInformation("Transfer request from AuthUserId: {From} to {To}, Amount: {Amount}",
-            authUserId, dto.ReceiverAuthUserId, dto.Amount);
-
-        if (authUserId == dto.ReceiverAuthUserId)
-            return (false, "Cannot transfer to your own wallet.");
+        _logger.LogInformation("Transfer request from AuthUserId: {From} to UserId: {ToId} / Email: {ToEmail}, Amount: {Amount}",
+            authUserId, dto.ReceiverAuthUserId, dto.ReceiverEmail, dto.Amount);
 
         var senderWallet = await _repo.GetWalletByAuthUserIdAsync(authUserId);
         if (senderWallet == null)
@@ -143,7 +140,24 @@ public class WalletServiceImpl : IWalletService
         if (senderWallet.Balance < dto.Amount)
             return (false, "Insufficient balance.");
 
-        var receiverWallet = await _repo.GetWalletByAuthUserIdAsync(dto.ReceiverAuthUserId);
+        Wallet receiverWallet = null;
+        if (dto.ReceiverAuthUserId.HasValue && dto.ReceiverAuthUserId.Value != 0)
+        {
+            if (authUserId == dto.ReceiverAuthUserId.Value)
+                return (false, "Cannot transfer to your own wallet.");
+            receiverWallet = await _repo.GetWalletByAuthUserIdAsync(dto.ReceiverAuthUserId.Value);
+        }
+        else if (!string.IsNullOrEmpty(dto.ReceiverEmail))
+        {
+            if (senderWallet.UserEmail.Equals(dto.ReceiverEmail, StringComparison.OrdinalIgnoreCase))
+                return (false, "Cannot transfer to your own wallet.");
+            receiverWallet = await _repo.GetWalletByUserEmailAsync(dto.ReceiverEmail);
+        }
+        else
+        {
+            return (false, "Receiver user ID or Email is required.");
+        }
+
         if (receiverWallet == null)
             return (false, "Receiver wallet not found.");
 
@@ -157,7 +171,7 @@ public class WalletServiceImpl : IWalletService
             Type = "DEBIT",
             Amount = dto.Amount,
             Description = dto.Description,
-            ReferenceId = dto.ReceiverAuthUserId.ToString(),
+            ReferenceId = receiverWallet.AuthUserId.ToString(),
             CreatedAt = DateTime.UtcNow
         });
         senderWallet.Balance -= dto.Amount;
@@ -168,7 +182,7 @@ public class WalletServiceImpl : IWalletService
             WalletId = receiverWallet.Id,
             Type = "CREDIT",
             Amount = dto.Amount,
-            Description = $"Transfer received from user {authUserId}",
+            Description = $"Transfer received from {senderEmail}",
             ReferenceId = authUserId.ToString(),
             CreatedAt = DateTime.UtcNow
         });
@@ -176,23 +190,23 @@ public class WalletServiceImpl : IWalletService
 
         await _repo.SaveChangesAsync();
         _cache.Remove($"wallet_balance_{authUserId}");
-        _cache.Remove($"wallet_balance_{dto.ReceiverAuthUserId}");
+        _cache.Remove($"wallet_balance_{receiverWallet.AuthUserId}");
 
         // Transfer is already committed, so event publish failure should not roll it back.
         var published = _publisher.Publish(new WalletTransferCompletedEvent
         {
             SenderAuthUserId = authUserId,
             SenderEmail = senderEmail,
-            ReceiverAuthUserId = dto.ReceiverAuthUserId,
+            ReceiverAuthUserId = receiverWallet.AuthUserId,
             ReceiverEmail = receiverWallet.UserEmail,
             Amount = dto.Amount,
             Timestamp = DateTime.UtcNow
         });
 
-        _logger.LogInformation("Transfer successful from {From} to {To}", authUserId, dto.ReceiverAuthUserId);
+        _logger.LogInformation("Transfer successful from {From} to {To}", authUserId, receiverWallet.AuthUserId);
         if (!published)
         {
-            _logger.LogWarning("Wallet transfer event publish failed from {From} to {To}", authUserId, dto.ReceiverAuthUserId);
+            _logger.LogWarning("Wallet transfer event publish failed from {From} to {To}", authUserId, receiverWallet.AuthUserId);
             return (true, $"Transfer of {dto.Amount:C} successful. Notifications may be delayed.");
         }
 

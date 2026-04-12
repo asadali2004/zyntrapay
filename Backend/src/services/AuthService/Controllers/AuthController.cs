@@ -109,6 +109,22 @@ public class AuthController : ControllerBase
         return Ok(data);
     }
 
+    [HttpGet("users/lookup")]
+    [Authorize]
+    [ProducesResponseType(typeof(UserSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthErrorResponseDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> LookupUser([FromQuery] string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest(BuildErrorResponse("Email is required."));
+        }
+
+        var (success, data, message) = await _authService.GetUserByEmailAsync(email);
+        if (!success) return NotFound(BuildErrorResponse(message));
+        return Ok(data);
+    }
+
     [HttpPost("send-otp")]
     [ApiExplorerSettings(IgnoreApi = true)]
     [ProducesResponseType(typeof(SignupStepResponseDto), StatusCodes.Status200OK)]

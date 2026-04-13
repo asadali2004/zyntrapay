@@ -38,6 +38,36 @@ Core architecture principles:
 
 ## Architecture
 
+### Overall Architecture Diagram
+
+```mermaid
+flowchart LR
+	U[Client Apps\nAngular Frontend / API Clients] --> G[ApiGateway\nOcelot]
+
+	G --> A[AuthService\nAuthDB]
+	G --> US[UserService\nUserDB]
+	G --> W[WalletService\nWalletDB]
+	G --> R[RewardsService\nRewardsDB]
+	G --> N[NotificationService\nNotificationDB]
+	G --> AD[AdminService\nAdminDB]
+
+	W -- WalletTopUpCompleted / WalletTransferCompleted --> MQ[(RabbitMQ)]
+	MQ --> R
+	MQ --> N
+
+	A -- OTP / Welcome Events --> MQ
+	AD --> A
+	AD --> US
+
+	N --> M[Mailpit / SMTP]
+	A --> SQL[(SQL Server)]
+	US --> SQL
+	W --> SQL
+	R --> SQL
+	N --> SQL
+	AD --> SQL
+```
+
 ### Runtime Components
 
 | Component | Local Port | Responsibility | Database |
@@ -101,7 +131,6 @@ ZyntraPay/
 |- Frontend/
 |  |- zyntrapay-app/ (Angular)
 |- Documentations/
-|- Local_Documents/
 ```
 
 ## Tech Stack
@@ -244,7 +273,8 @@ Standard error contract:
 
 For full endpoint details and request/response examples:
 
-- [Local_Documents/13_Complete_API_Endpoints_Reference.md](./Local_Documents/13_Complete_API_Endpoints_Reference.md)
+- Use service Swagger endpoints through the gateway and service projects under `Backend/src/services/`.
+- Review high-level design in [Documentations/ZyntraPay_HLD.pdf](./Documentations/ZyntraPay_HLD.pdf).
 
 ## Testing
 
@@ -269,39 +299,14 @@ dotnet test .\test\ZyntraPay.IntegrationTests\ZyntraPay.IntegrationTests.csproj
 
 Reference checklist:
 
-- [Local_Documents/TEST_CHECKLIST.md](./Local_Documents/TEST_CHECKLIST.md)
+- Backend test projects are available under `Backend/test/`.
 
 ## Documentation Index
 
-### Core
-
-- [Local_Documents/00_Overall_System_Workflow.md](./Local_Documents/00_Overall_System_Workflow.md)
-- [Local_Documents/09_Tech_Stack_and_Viva_Revision_Guide.md](./Local_Documents/09_Tech_Stack_and_Viva_Revision_Guide.md)
-- [Local_Documents/22_Project_Command_Reference.md](./Local_Documents/22_Project_Command_Reference.md)
-- [Local_Documents/19_Docker_Setup_Guide.md](./Local_Documents/19_Docker_Setup_Guide.md)
-
-### Service Documentation
-
-- [Local_Documents/01_ApiGateway_Documentation.md](./Local_Documents/01_ApiGateway_Documentation.md)
-- [Local_Documents/02_AuthService_Documentation.md](./Local_Documents/02_AuthService_Documentation.md)
-- [Local_Documents/03_UserService_Documentation.md](./Local_Documents/03_UserService_Documentation.md)
-- [Local_Documents/04_WalletService_Documentation.md](./Local_Documents/04_WalletService_Documentation.md)
-- [Local_Documents/05_RewardsService_Documentation.md](./Local_Documents/05_RewardsService_Documentation.md)
-- [Local_Documents/06_NotificationService_Documentation.md](./Local_Documents/06_NotificationService_Documentation.md)
-- [Local_Documents/07_AdminService_Documentation.md](./Local_Documents/07_AdminService_Documentation.md)
-
-### Frontend Contracts
-
-- [Local_Documents/14_Auth_Signup_Frontend_Contract.md](./Local_Documents/14_Auth_Signup_Frontend_Contract.md)
-- [Local_Documents/16_User_Wallet_Frontend_Contract.md](./Local_Documents/16_User_Wallet_Frontend_Contract.md)
-- [Local_Documents/17_Rewards_Notification_Admin_Frontend_Contract.md](./Local_Documents/17_Rewards_Notification_Admin_Frontend_Contract.md)
-- [Local_Documents/18_Frontend_Integration_Backend_Readiness_Checklist.md](./Local_Documents/18_Frontend_Integration_Backend_Readiness_Checklist.md)
-
-### Planning and Handoff
-
-- [Local_Documents/08_Next_Steps_Implementation_Plan.md](./Local_Documents/08_Next_Steps_Implementation_Plan.md)
-- [Local_Documents/12_Project_Current_Status_Summary_For_Handoff.md](./Local_Documents/12_Project_Current_Status_Summary_For_Handoff.md)
-- [Local_Documents/21_Realistic_System_Improvement_Roadmap.md](./Local_Documents/21_Realistic_System_Improvement_Roadmap.md)
+- [README.md](./README.md) - repository-level overview and setup
+- [Backend/README.md](./Backend/README.md) - backend scope and command entry point
+- [Frontend/zyntrapay-app/README.md](./Frontend/zyntrapay-app/README.md) - Angular app usage
+- [Documentations/ZyntraPay_HLD.pdf](./Documentations/ZyntraPay_HLD.pdf) - high-level architecture/design document
 
 ## Current Project Status
 
@@ -311,7 +316,7 @@ Based on the latest project docs and repository structure:
 - Unit and integration test projects are present across all core services.
 - Docker Compose is configured for complete backend + infra startup.
 - Angular frontend application exists and is structured with `core`, `features`, and `shared` areas.
-- API contracts and service documentation are extensively documented in `Local_Documents/`.
+- API and architecture documentation are available in this README, project READMEs, and the HLD document.
 
 ## Contributing
 
@@ -327,6 +332,6 @@ Contributions are welcome. Please follow these standards:
 
 If you are starting for the first time, begin with:
 
-1. [Local_Documents/00_Overall_System_Workflow.md](./Local_Documents/00_Overall_System_Workflow.md)
-2. [Local_Documents/22_Project_Command_Reference.md](./Local_Documents/22_Project_Command_Reference.md)
-3. [Local_Documents/13_Complete_API_Endpoints_Reference.md](./Local_Documents/13_Complete_API_Endpoints_Reference.md)
+1. [README.md](./README.md)
+2. [Backend/README.md](./Backend/README.md)
+3. [Documentations/ZyntraPay_HLD.pdf](./Documentations/ZyntraPay_HLD.pdf)

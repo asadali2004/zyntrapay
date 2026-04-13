@@ -41,31 +41,49 @@ Core architecture principles:
 ### Overall Architecture Diagram
 
 ```mermaid
-flowchart LR
-	U[Client Apps\nAngular Frontend / API Clients] --> G[ApiGateway\nOcelot]
+flowchart TB
+	FE[Angular Frontend<br/>Port 4200]
+	FE -->|All HTTP Requests| GW[Ocelot API Gateway<br/>Port 5001]
 
-	G --> A[AuthService\nAuthDB]
-	G --> US[UserService\nUserDB]
-	G --> W[WalletService\nWalletDB]
-	G --> R[RewardsService\nRewardsDB]
-	G --> N[NotificationService\nNotificationDB]
-	G --> AD[AdminService\nAdminDB]
+	subgraph S[Microservices]
+		direction LR
+		A[AuthService<br/>5003]
+		U[UserService<br/>5005]
+		W[WalletService<br/>5007]
+		R[RewardsService<br/>5009]
+		N[NotificationService<br/>5011]
+		AD[AdminService<br/>5013]
+	end
 
-	W -- WalletTopUpCompleted / WalletTransferCompleted --> MQ[(RabbitMQ)]
+	GW -->|/gateway/auth/*| A
+	GW -->|/gateway/user/*| U
+	GW -->|/gateway/wallet/*| W
+	GW -->|/gateway/rewards/*| R
+	GW -->|/gateway/notification/*| N
+	GW -->|/gateway/admin/*| AD
+
+	subgraph D[Data and Messaging]
+		direction LR
+		ADB[(AuthDB)]
+		UDB[(UserDB)]
+		WDB[(WalletDB)]
+		RDB[(RewardsDB)]
+		NDB[(NotificationDB)]
+		DB[(AdminDB)]
+		MQ[[RabbitMQ<br/>Async Event Bus]]
+	end
+
+	A --> ADB
+	U --> UDB
+	W --> WDB
+	R --> RDB
+	N --> NDB
+	AD --> DB
+
+	W -->|TopUp / Transfer Events| MQ
+	A -->|OTP / Welcome Events| MQ
 	MQ --> R
 	MQ --> N
-
-	A -- OTP / Welcome Events --> MQ
-	AD --> A
-	AD --> US
-
-	N --> M[Mailpit / SMTP]
-	A --> SQL[(SQL Server)]
-	US --> SQL
-	W --> SQL
-	R --> SQL
-	N --> SQL
-	AD --> SQL
 ```
 
 ### Runtime Components

@@ -2,6 +2,9 @@ using WalletService.Models;
 
 namespace WalletService.Repositories;
 
+/// <summary>
+/// Defines persistence operations for wallets and ledger entries.
+/// </summary>
 public interface IWalletRepository
 {
     Task<Wallet?> GetWalletByAuthUserIdAsync(int authUserId);

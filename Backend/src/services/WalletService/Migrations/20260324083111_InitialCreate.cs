@@ -5,10 +5,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace WalletService.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Creates the initial WalletService schema for wallets and ledger entries.
+    /// </summary>
     public partial class InitialCreate : Migration
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Applies initial tables, relationships, defaults, and indexes for wallet persistence.
+        /// </summary>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -63,7 +67,9 @@ namespace WalletService.Migrations
                 unique: true);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reverts initial WalletService schema objects.
+        /// </summary>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

@@ -6,6 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace WalletService.Services;
 
+/// <summary>
+/// Publishes wallet domain events to RabbitMQ using shared queue conventions.
+/// </summary>
 public class RabbitMqPublisher : IRabbitMqPublisher
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;

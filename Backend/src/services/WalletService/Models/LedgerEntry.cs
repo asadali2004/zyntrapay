@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WalletService.Models;
 
+/// <summary>
+/// Represents an immutable wallet ledger movement (credit or debit).
+/// </summary>
 [Table("LedgerEntries")]
 public class LedgerEntry
 {

@@ -4,16 +4,22 @@
 
 namespace WalletService.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Placeholder migration reserved for wallet schema update alignment.
+    /// </summary>
     public partial class UpdateWalletSchema : Migration
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Applies wallet schema update operations.
+        /// </summary>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
 
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reverts wallet schema update operations.
+        /// </summary>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
 

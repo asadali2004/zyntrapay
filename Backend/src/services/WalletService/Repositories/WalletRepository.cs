@@ -4,6 +4,9 @@ using WalletService.Models;
 
 namespace WalletService.Repositories;
 
+/// <summary>
+/// Provides Entity Framework Core data access for wallet and ledger entities.
+/// </summary>
 public class WalletRepository : IWalletRepository
 {
     private readonly WalletDbContext _context;

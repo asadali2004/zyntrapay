@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WalletService.DTOs;
 
+/// <summary>
+/// Carries top-up input for adding funds to the authenticated wallet.
+/// </summary>
 public class TopUpRequestDto
 {
     [Required]
@@ -12,6 +15,9 @@ public class TopUpRequestDto
     public string Description { get; set; } = "Wallet Top-Up";
 }
 
+/// <summary>
+/// Carries transfer input for sending funds to another wallet.
+/// </summary>
 public class TransferRequestDto
 {
     public int? ReceiverAuthUserId { get; set; }
@@ -27,6 +33,9 @@ public class TransferRequestDto
     public string Description { get; set; } = "Fund Transfer";
 }
 
+/// <summary>
+/// Represents wallet balance and account state returned to clients.
+/// </summary>
 public class WalletResponseDto
 {
     public int Id { get; set; }
@@ -36,6 +45,9 @@ public class WalletResponseDto
     public DateTime CreatedAt { get; set; }
 }
 
+/// <summary>
+/// Represents a wallet ledger transaction item.
+/// </summary>
 public class LedgerEntryDto
 {
     public int Id { get; set; }
@@ -46,11 +58,17 @@ public class LedgerEntryDto
     public DateTime CreatedAt { get; set; }
 }
 
+/// <summary>
+/// Represents a generic successful wallet-operation response.
+/// </summary>
 public class WalletActionResponseDto
 {
     public string Message { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents a standardized error payload for wallet endpoints.
+/// </summary>
 public class WalletErrorResponseDto
 {
     public string Message { get; set; } = string.Empty;

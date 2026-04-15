@@ -6,6 +6,9 @@ using WalletService.Repositories;
 
 namespace WalletService.Services;
 
+/// <summary>
+/// Implements wallet lifecycle, ledger updates, caching, and event publication workflows.
+/// </summary>
 public class WalletServiceImpl : IWalletService
 {
     private readonly IWalletRepository _repo;

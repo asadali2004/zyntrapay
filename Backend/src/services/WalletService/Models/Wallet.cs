@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WalletService.Models;
 
+/// <summary>
+/// Represents a persisted wallet account linked to an authenticated user.
+/// </summary>
 [Table("Wallets")]
 public class Wallet
 {

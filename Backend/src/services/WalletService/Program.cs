@@ -5,6 +5,7 @@ using WalletService.Data;
 using WalletService.Extensions;
 using WalletService.Middleware;
 
+// Configures WalletService hosting, dependency injection, middleware pipeline, and startup database checks.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>
@@ -74,5 +75,8 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
-// Required for integration testing
+
+/// <summary>
+/// Exposes the entry point type for integration testing.
+/// </summary>
 public partial class Program { }

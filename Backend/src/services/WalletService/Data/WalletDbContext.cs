@@ -3,6 +3,9 @@ using WalletService.Models;
 
 namespace WalletService.Data;
 
+/// <summary>
+/// Entity Framework Core context for wallets and ledger entries.
+/// </summary>
 public class WalletDbContext : DbContext
 {
     public WalletDbContext(DbContextOptions<WalletDbContext> options)
@@ -11,6 +14,9 @@ public class WalletDbContext : DbContext
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<LedgerEntry> LedgerEntries { get; set; }
 
+    /// <summary>
+    /// Configures relational constraints, defaults, and wallet-ledger relationships.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Wallet>(entity =>

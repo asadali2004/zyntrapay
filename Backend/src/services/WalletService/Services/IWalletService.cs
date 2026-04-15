@@ -2,6 +2,9 @@
 
 namespace WalletService.Services;
 
+/// <summary>
+/// Defines wallet business operations for balance, top-up, transfer, and ledger retrieval.
+/// </summary>
 public interface IWalletService
 {
     Task<(bool Success, string Message)> CreateWalletAsync(int authUserId, string userEmail);

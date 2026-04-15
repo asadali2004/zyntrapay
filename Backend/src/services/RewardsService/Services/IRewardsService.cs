@@ -2,6 +2,9 @@
 
 namespace RewardsService.Services;
 
+/// <summary>
+/// Defines rewards business operations for summary, catalog, redemption, and point awarding.
+/// </summary>
 public interface IRewardsService
 {
     Task<(bool Success, RewardSummaryDto? Data, string Message)> GetSummaryAsync(int authUserId);

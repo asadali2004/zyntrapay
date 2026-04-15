@@ -5,6 +5,7 @@ using RewardsService.Extensions;
 using RewardsService.Middleware;
 using Serilog;
 
+// Configures RewardsService hosting, dependency injection, middleware pipeline, and startup migrations.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>

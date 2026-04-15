@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RewardsService.Models;
 
+/// <summary>
+/// Represents a redeemable reward catalog item.
+/// </summary>
 [Table("RewardCatalog")]
 public class RewardCatalog
 {

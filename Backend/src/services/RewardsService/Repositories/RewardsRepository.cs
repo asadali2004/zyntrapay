@@ -4,6 +4,9 @@ using RewardsService.Models;
 
 namespace RewardsService.Repositories;
 
+/// <summary>
+/// Provides Entity Framework Core data access for rewards domain entities.
+/// </summary>
 public class RewardsRepository : IRewardsRepository
 {
     private readonly RewardsDbContext _context;

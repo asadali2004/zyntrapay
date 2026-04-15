@@ -4,6 +4,9 @@ using System.Text.Json;
 
 namespace RewardsService.Middleware;
 
+/// <summary>
+/// Captures unhandled exceptions and returns standardized JSON error responses.
+/// </summary>
 public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
@@ -28,6 +31,9 @@ public class GlobalExceptionMiddleware
         }
     }
 
+    /// <summary>
+    /// Maps runtime exceptions into API-friendly status codes and payloads.
+    /// </summary>
     private static Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
         var statusCode = ex switch
@@ -51,6 +57,9 @@ public class GlobalExceptionMiddleware
         }));
     }
 
+    /// <summary>
+    /// Converts response status codes into stable machine-readable error identifiers.
+    /// </summary>
     private static string GetErrorCode(int statusCode)
         => statusCode switch
         {

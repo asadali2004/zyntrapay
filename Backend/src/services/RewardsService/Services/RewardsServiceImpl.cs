@@ -7,6 +7,9 @@ using Shared.Events;
 
 namespace RewardsService.Services;
 
+/// <summary>
+/// Implements rewards account management, catalog redemption, caching, and points awarding workflows.
+/// </summary>
 public class RewardsServiceImpl : IRewardsService
 {
     private readonly IRewardsRepository _repo;

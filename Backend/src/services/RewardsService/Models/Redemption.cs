@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RewardsService.Models;
 
+/// <summary>
+/// Represents a completed reward redemption transaction.
+/// </summary>
 [Table("Redemptions")]
 public class Redemption
 {

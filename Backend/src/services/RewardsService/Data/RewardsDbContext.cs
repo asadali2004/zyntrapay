@@ -3,6 +3,9 @@ using RewardsService.Models;
 
 namespace RewardsService.Data;
 
+/// <summary>
+/// Entity Framework Core context for rewards accounts, catalog items, and redemptions.
+/// </summary>
 public class RewardsDbContext : DbContext
 {
     public RewardsDbContext(DbContextOptions<RewardsDbContext> options)
@@ -12,6 +15,9 @@ public class RewardsDbContext : DbContext
     public DbSet<RewardCatalog> RewardCatalogs { get; set; }
     public DbSet<Redemption> Redemptions { get; set; }
 
+    /// <summary>
+    /// Configures rewards entity constraints, defaults, relationships, and seed data.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<RewardAccount>(entity =>

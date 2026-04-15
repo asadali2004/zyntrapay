@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RewardsService.Models;
 
+/// <summary>
+/// Represents a user's rewards account with accumulated points and loyalty tier.
+/// </summary>
 [Table("RewardAccounts")]
 public class RewardAccount
 {

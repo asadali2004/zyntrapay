@@ -2,6 +2,9 @@
 
 namespace RewardsService.Repositories;
 
+/// <summary>
+/// Defines persistence operations for rewards accounts, catalog items, and redemptions.
+/// </summary>
 public interface IRewardsRepository
 {
     // Reward Account

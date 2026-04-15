@@ -8,6 +8,9 @@ using RewardsService.Services;
 
 namespace RewardsService.Consumers;
 
+/// <summary>
+/// Consumes wallet top-up events and awards reward points asynchronously.
+/// </summary>
 public class WalletTopUpConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;
@@ -24,6 +27,9 @@ public class WalletTopUpConsumer : BackgroundService
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>
+    /// Starts RabbitMQ consumption loop with retry behavior on broker unavailability.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)

@@ -3,6 +3,9 @@ using AdminService.DTOs;
 
 namespace AdminService.Services;
 
+/// <summary>
+/// Implements outbound HTTP calls to AuthService for administrative user access operations.
+/// </summary>
 public class AuthServiceClient : IAuthServiceClient
 {
     private readonly HttpClient _httpClient;

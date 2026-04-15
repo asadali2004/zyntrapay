@@ -5,10 +5,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AdminService.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Creates the initial AdminService schema for audit action tracking.
+    /// </summary>
     public partial class InitialUpdate : Migration
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Applies initial admin action table, indexes, and defaults.
+        /// </summary>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -39,7 +43,9 @@ namespace AdminService.Migrations
                 column: "TargetUserId");
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reverts initial AdminService schema objects.
+        /// </summary>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

@@ -2,6 +2,9 @@
 
 namespace AdminService.Services;
 
+/// <summary>
+/// Defines HTTP client operations used to interact with AuthService from AdminService.
+/// </summary>
 public interface IAuthServiceClient
 {
     Task<List<UserSummaryDto>> GetAllUsersAsync();

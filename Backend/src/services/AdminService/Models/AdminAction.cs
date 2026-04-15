@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdminService.Models;
 
+/// <summary>
+/// Represents an auditable administrative action performed on a target user context.
+/// </summary>
 [Table("AdminActions")]
 public class AdminAction
 {

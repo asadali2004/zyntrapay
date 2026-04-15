@@ -4,6 +4,9 @@ using AdminService.DTOs;
 
 namespace AdminService.Services;
 
+/// <summary>
+/// Implements outbound HTTP calls to UserService for KYC and profile administrative operations.
+/// </summary>
 public class UserServiceClient : IUserServiceClient
 {
     private readonly HttpClient _httpClient;

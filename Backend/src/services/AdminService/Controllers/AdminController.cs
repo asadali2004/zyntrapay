@@ -7,6 +7,9 @@ using System.Security.Claims;
 
 namespace AdminService.Controllers;
 
+/// <summary>
+/// Exposes admin-only endpoints for KYC moderation, user management, dashboard, and audit views.
+/// </summary>
 [ApiController]
 [Route("api/admin")]
 [Authorize(Roles = "Admin")]
@@ -19,8 +22,39 @@ public class AdminController : ControllerBase
         _adminService = adminService;
     }
 
+    /// <summary>
+    /// Extracts authenticated admin user id from JWT claims.
+    /// </summary>
     private int GetAuthUserId()
         => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    /// <summary>
+    /// Builds a standardized API error payload for admin operations.
+    /// </summary>
+    private static AdminErrorResponseDto BuildErrorResponse(string message)
+        => new()
+        {
+            Message = message,
+            ErrorCode = GetErrorCode(message)
+        };
+
+    /// <summary>
+    /// Converts service failure messages into stable machine-readable error codes.
+    /// </summary>
+    private static string GetErrorCode(string message)
+    {
+        if (message.Contains("kyc not found", StringComparison.OrdinalIgnoreCase))
+            return "KYC_NOT_FOUND";
+
+        if (message.Contains("already", StringComparison.OrdinalIgnoreCase))
+            return "ADMIN_CONFLICT";
+
+        if (message.Contains("user", StringComparison.OrdinalIgnoreCase) &&
+            message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            return "USER_NOT_FOUND";
+
+        return "ADMIN_VALIDATION_FAILED";
+    }
 
     [HttpGet("kyc/pending")]
     [ProducesResponseType(typeof(List<KycSubmissionDto>), StatusCodes.Status200OK)]
@@ -110,26 +144,5 @@ public class AdminController : ControllerBase
             kyc
         });
     }
-
-    private static AdminErrorResponseDto BuildErrorResponse(string message)
-        => new()
-        {
-            Message = message,
-            ErrorCode = GetErrorCode(message)
-        };
-
-    private static string GetErrorCode(string message)
-    {
-        if (message.Contains("kyc not found", StringComparison.OrdinalIgnoreCase))
-            return "KYC_NOT_FOUND";
-
-        if (message.Contains("already", StringComparison.OrdinalIgnoreCase))
-            return "ADMIN_CONFLICT";
-
-        if (message.Contains("user", StringComparison.OrdinalIgnoreCase) &&
-            message.Contains("not found", StringComparison.OrdinalIgnoreCase))
-            return "USER_NOT_FOUND";
-
-        return "ADMIN_VALIDATION_FAILED";
-    }
 }
+

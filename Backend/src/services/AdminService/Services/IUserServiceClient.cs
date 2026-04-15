@@ -2,6 +2,9 @@
 
 namespace AdminService.Services;
 
+/// <summary>
+/// Defines HTTP client operations used to interact with UserService from AdminService.
+/// </summary>
 public interface IUserServiceClient
 {
     Task<List<KycSubmissionDto>> GetPendingKycsAsync();

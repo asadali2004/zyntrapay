@@ -14,8 +14,14 @@ using System.Text;
 
 namespace AdminService.Extensions;
 
+// <summary>
+// Provides dependency-injection extension methods for AdminService infrastructure wiring.
+// </summary>
 public static class ServiceExtensions
 {
+    /// <summary>
+    /// Registers AdminService database context and SQL Server provider configuration.
+    /// </summary>
     public static IServiceCollection AddDatabase(
         this IServiceCollection services, IConfiguration config)
     {
@@ -24,6 +30,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers JWT bearer authentication and token validation rules.
+    /// </summary>
     public static IServiceCollection AddJwtAuthentication(
         this IServiceCollection services, IConfiguration config)
     {
@@ -46,6 +55,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers core admin services, repositories, messaging, handlers, and resilient HTTP clients.
+    /// </summary>
     public static IServiceCollection AddApplicationServices(
      this IServiceCollection services, IConfiguration config)
     {
@@ -83,21 +95,33 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Builds exponential-backoff retry policy for transient downstream HTTP failures.
+    /// </summary>
     private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
         => HttpPolicyExtensions
             .HandleTransientHttpError()
             .Or<TimeoutRejectedException>()
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
+    /// <summary>
+    /// Builds circuit-breaker policy to temporarily stop calls after repeated failures.
+    /// </summary>
     private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
         => HttpPolicyExtensions
             .HandleTransientHttpError()
             .Or<TimeoutRejectedException>()
             .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
 
+    /// <summary>
+    /// Builds timeout policy for outbound downstream HTTP requests.
+    /// </summary>
     private static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
         => Policy.TimeoutAsync<HttpResponseMessage>(10);
 
+    /// <summary>
+    /// Registers Swagger/OpenAPI metadata and JWT bearer security definition.
+    /// </summary>
     public static IServiceCollection AddSwaggerDocumentation(
         this IServiceCollection services)
     {

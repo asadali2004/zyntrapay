@@ -3,6 +3,9 @@ using AdminService.Models;
 
 namespace AdminService.Repositories;
 
+/// <summary>
+/// Provides Entity Framework Core data access for admin action audit records.
+/// </summary>
 public class AdminRepository : IAdminRepository
 {
     private readonly AdminDbContext _context;

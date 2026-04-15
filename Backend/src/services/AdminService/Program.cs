@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
+// Configures AdminService hosting, dependency injection, middleware pipeline, and database initialization.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>
@@ -69,5 +70,7 @@ app.MapHealthChecks("/health");
 
 app.Run();
 
-// Required for integration testing
+/// <summary>
+/// Exposes the entry point type for integration testing.
+/// </summary>
 public partial class Program { }

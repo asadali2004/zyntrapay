@@ -5,6 +5,9 @@ using Shared.Events;
 
 namespace AdminService.Services;
 
+/// <summary>
+/// Implements admin orchestration across user/auth services and internal audit/event workflows.
+/// </summary>
 public class AdminServiceImpl : IAdminService
 {
     private readonly IAdminRepository _repo;

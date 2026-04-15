@@ -2,6 +2,9 @@
 
 namespace AdminService.Services;
 
+/// <summary>
+/// Defines business operations for administrative moderation, user management, and audit reporting.
+/// </summary>
 public interface IAdminService
 {
     Task<(bool Success, List<KycSubmissionDto>? Data, string Message)> GetPendingKycsAsync();

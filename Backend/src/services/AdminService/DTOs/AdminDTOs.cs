@@ -2,6 +2,9 @@
 
 namespace AdminService.DTOs;
 
+/// <summary>
+/// Carries administrator KYC review decision and related target user context.
+/// </summary>
 public class ReviewKycDto
 {
     [Required(ErrorMessage = "Status is required.")]
@@ -15,6 +18,9 @@ public class ReviewKycDto
     public string UserEmail { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents KYC submission data returned for administrative review.
+/// </summary>
 public class KycSubmissionDto
 {
     public int Id { get; set; }
@@ -26,6 +32,9 @@ public class KycSubmissionDto
     public DateTime SubmittedAt { get; set; }
 }
 
+/// <summary>
+/// Represents user profile details exposed to administrators.
+/// </summary>
 public class AdminUserProfileDto
 {
     public int Id { get; set; }
@@ -38,6 +47,9 @@ public class AdminUserProfileDto
     public string PinCode { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents a lightweight user summary used in admin user-management views.
+/// </summary>
 public class UserSummaryDto
 {
     public int Id { get; set; }
@@ -48,6 +60,9 @@ public class UserSummaryDto
     public DateTime CreatedAt { get; set; }
 }
 
+/// <summary>
+/// Represents dashboard aggregates for administrative overview metrics.
+/// </summary>
 public class DashboardDto
 {
     public int TotalUsers { get; set; }
@@ -57,11 +72,17 @@ public class DashboardDto
     public int RejectedKyc { get; set; }
 }
 
+/// <summary>
+/// Represents a generic successful admin-operation response.
+/// </summary>
 public class AdminActionResponseDto
 {
     public string Message { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents an admin audit action record returned to clients.
+/// </summary>
 public class AdminActionDto
 {
     public int Id { get; set; }
@@ -72,6 +93,9 @@ public class AdminActionDto
     public DateTime PerformedAt { get; set; }
 }
 
+/// <summary>
+/// Represents a standardized error payload for admin endpoints.
+/// </summary>
 public class AdminErrorResponseDto
 {
     public string Message { get; set; } = string.Empty;

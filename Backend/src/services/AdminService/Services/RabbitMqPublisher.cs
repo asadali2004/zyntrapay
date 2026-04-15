@@ -6,6 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace AdminService.Services;
 
+/// <summary>
+/// Publishes admin domain events to RabbitMQ using shared queue conventions.
+/// </summary>
 public class RabbitMqPublisher : IRabbitMqPublisher
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;

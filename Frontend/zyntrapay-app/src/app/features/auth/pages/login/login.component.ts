@@ -47,6 +47,7 @@ export class LoginComponent {
     });
   }
 
+
   onSubmit(): void {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -122,9 +123,5 @@ export class LoginComponent {
         this.toastService.error('Failed', err.error?.message || 'Invalid OTP or expired.');
       }
     });
-  }
-
-  loginWithGoogle(): void {
-    this.toastService.info('Coming Soon', 'Google login will be available shortly.');
   }
 }

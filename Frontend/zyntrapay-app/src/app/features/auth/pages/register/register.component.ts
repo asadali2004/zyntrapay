@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -15,7 +15,7 @@ import { ToastService } from '../../../../shared/ui/toast/toast.service';
 export class RegisterComponent {
   registerForm: FormGroup;
   otpForm: FormGroup;
-  
+
   step = signal<'details' | 'otp'>('details');
   loading = signal(false);
   showPassword = signal(false);
@@ -107,7 +107,7 @@ export class RegisterComponent {
       this.otpForm.markAllAsTouched();
       return;
     }
-    
+
     this.loading.set(true);
     const email = this.registerForm.get('email')?.value;
     const otp = this.otpForm.get('otp')?.value;
@@ -143,10 +143,6 @@ export class RegisterComponent {
 
   backToDetails(): void {
     this.step.set('details');
-  }
-
-  signupWithGoogle(): void {
-    this.toastService.info('Coming Soon', 'Google sign-up will be available shortly.');
   }
 
   private normalizePhoneNumber(value: string | null | undefined): string {

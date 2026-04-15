@@ -246,6 +246,13 @@
 }
 
 /* Google Button */
+.google-signin-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
 .btn-google {
   width: 100%;
   display: flex;

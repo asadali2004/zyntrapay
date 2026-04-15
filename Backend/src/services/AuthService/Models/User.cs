@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuthService.Models;
 
+/// <summary>
+/// Represents an authenticated account stored by the AuthService.
+/// </summary>
 [Table("Users")]
 public class User
 {

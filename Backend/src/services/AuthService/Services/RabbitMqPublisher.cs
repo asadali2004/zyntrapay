@@ -6,6 +6,9 @@ using System.Text.Json;
 
 namespace AuthService.Services;
 
+/// <summary>
+/// Publishes integration events to RabbitMQ queues using shared queue conventions.
+/// </summary>
 public class RabbitMqPublisher : IRabbitMqPublisher
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;

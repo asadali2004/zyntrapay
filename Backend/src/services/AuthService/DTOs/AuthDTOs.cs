@@ -2,6 +2,9 @@
 
 namespace AuthService.DTOs;
 
+/// <summary>
+/// Carries user registration input for standard customer signup.
+/// </summary>
 public class RegisterRequestDto
 {
     [Required(ErrorMessage = "Email is required.")]
@@ -19,6 +22,9 @@ public class RegisterRequestDto
     public string Password { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Carries registration input for admin account provisioning.
+/// </summary>
 public class AdminRegisterRequestDto
 {
     [Required(ErrorMessage = "Email is required.")]
@@ -37,6 +43,9 @@ public class AdminRegisterRequestDto
     public string AdminSecretKey { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Carries login credentials for password-based authentication.
+/// </summary>
 public class LoginRequestDto
 {
     [Required(ErrorMessage = "Email is required.")]
@@ -47,6 +56,9 @@ public class LoginRequestDto
     public string Password { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Returns issued authentication tokens and profile context.
+/// </summary>
 public class AuthResponseDto
 {
     public string Token { get; set; } = string.Empty;
@@ -56,21 +68,33 @@ public class AuthResponseDto
     public bool PhoneUpdateRequired { get; set; }
 }
 
+/// <summary>
+/// Represents a generic authentication action outcome message.
+/// </summary>
 public class AuthActionResponseDto
 {
     public string Message { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents a step-based response used in multi-stage signup flows.
+/// </summary>
 public class SignupStepResponseDto : AuthActionResponseDto
 {
     public string NextStep { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents a standardized error response for authentication endpoints.
+/// </summary>
 public class AuthErrorResponseDto : AuthActionResponseDto
 {
     public string ErrorCode { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Exposes a lightweight authenticated user projection.
+/// </summary>
 public class UserSummaryDto
 {
     public int Id { get; set; }
@@ -81,6 +105,9 @@ public class UserSummaryDto
     public DateTime CreatedAt { get; set; }
 }
 
+/// <summary>
+/// Requests an OTP for email verification or signup continuation.
+/// </summary>
 public class SendOtpRequestDto
 {
     [Required(ErrorMessage = "Email is required.")]
@@ -88,6 +115,9 @@ public class SendOtpRequestDto
     public string Email { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Carries OTP verification input for email-based flows.
+/// </summary>
 public class VerifyOtpRequestDto
 {
     [Required(ErrorMessage = "Email is required.")]
@@ -99,12 +129,18 @@ public class VerifyOtpRequestDto
     public string Otp { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Carries Google identity token input for social authentication.
+/// </summary>
 public class GoogleLoginRequestDto
 {
     [Required(ErrorMessage = "Google ID token is required.")]
     public string IdToken { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Carries an updated phone number for the authenticated user.
+/// </summary>
 public class UpdatePhoneDto
 {
     [Required]
@@ -112,6 +148,9 @@ public class UpdatePhoneDto
     public string PhoneNumber { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Initiates password reset by requesting an email OTP.
+/// </summary>
 public class ForgotPasswordRequestDto
 {
     [Required(ErrorMessage = "Email is required.")]
@@ -119,6 +158,9 @@ public class ForgotPasswordRequestDto
     public string Email { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Carries OTP and new password for password reset completion.
+/// </summary>
 public class ResetPasswordRequestDto
 {
     [Required(ErrorMessage = "Email is required.")]
@@ -136,6 +178,9 @@ public class ResetPasswordRequestDto
     public string NewPassword { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Carries refresh token input for token renewal.
+/// </summary>
 public class RefreshTokenRequestDto
 {
     [Required(ErrorMessage = "Refresh token is required.")]

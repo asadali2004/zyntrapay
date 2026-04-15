@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Data;
 
+/// <summary>
+/// Entity Framework Core context for authentication service persistence.
+/// </summary>
 public class AuthDbContext : DbContext
 {
     public AuthDbContext(DbContextOptions<AuthDbContext> options)
@@ -10,6 +13,9 @@ public class AuthDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
 
+    /// <summary>
+    /// Configures schema constraints, defaults, and indexes for auth entities.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>

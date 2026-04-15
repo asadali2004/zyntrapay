@@ -2,6 +2,9 @@
 
 namespace AuthService.Services;
 
+/// <summary>
+/// Defines business operations for authentication, registration, and token management.
+/// </summary>
 public interface IAuthService
 {
     Task<(bool Success, string Message)> RegisterAsync(RegisterRequestDto dto);

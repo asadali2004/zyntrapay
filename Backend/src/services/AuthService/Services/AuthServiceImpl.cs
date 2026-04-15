@@ -10,9 +10,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Linq;
 
 namespace AuthService.Services;
 
+/// <summary>
+/// Represents JWT configuration used to issue and validate access tokens.
+/// </summary>
 public class JwtSettings
 {
     public string SecretKey { get; set; } = string.Empty;
@@ -22,6 +26,9 @@ public class JwtSettings
     public int ExpiryMinutes { get; set; }
 }
 
+/// <summary>
+/// Implements authentication business flows including signup, login, OTP, and token lifecycle management.
+/// </summary>
 public class AuthServiceImpl : IAuthService
 {
     private readonly IAuthRepository _repo;
@@ -179,12 +186,25 @@ public class AuthServiceImpl : IAuthService
 
         try
         {
+            var audiences = GetGoogleAudiences();
+            if (audiences.Count == 0)
+            {
+                _logger.LogError("Google login is not configured. Missing GoogleAuth:ClientId or GoogleAuth:ClientIds.");
+                return (false, null, "Google login is not configured on the server.");
+            }
+
             var settings = new GoogleJsonWebSignature.ValidationSettings
             {
-                Audience = new[] { _configuration["GoogleAuth:ClientId"] }
+                Audience = audiences
             };
 
             var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+            if (string.IsNullOrWhiteSpace(payload.Email))
+            {
+                _logger.LogWarning("Google token validated but email claim was missing.");
+                return (false, null, "Google account email is unavailable. Please try another account.");
+            }
+
             var normalizedEmail = payload.Email.ToLower();
 
             var existingUser = await _repo.GetByEmailAsync(normalizedEmail);
@@ -235,6 +255,41 @@ public class AuthServiceImpl : IAuthService
             _logger.LogWarning("Invalid Google token: {Message}", ex.Message);
             return (false, null, "Invalid Google token. Please try again.");
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Google login failed unexpectedly.");
+            return (false, null, "Google login failed. Please try again.");
+        }
+    }
+
+    /// <summary>
+    /// Resolves accepted OAuth client audiences for Google token validation.
+    /// </summary>
+    private List<string> GetGoogleAudiences()
+    {
+        var audiences = new List<string>();
+
+        var primaryClientId = _configuration["GoogleAuth:ClientId"];
+        if (!string.IsNullOrWhiteSpace(primaryClientId))
+        {
+            audiences.Add(primaryClientId);
+        }
+
+        var envClientId = _configuration["GOOGLE_CLIENT_ID"];
+        if (!string.IsNullOrWhiteSpace(envClientId))
+        {
+            audiences.Add(envClientId);
+        }
+
+        var multipleClientIds = _configuration.GetSection("GoogleAuth:ClientIds").Get<string[]>();
+        if (multipleClientIds != null)
+        {
+            audiences.AddRange(multipleClientIds.Where(id => !string.IsNullOrWhiteSpace(id)));
+        }
+
+        return audiences
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     public async Task<(bool Success, string Message)> ForgotPasswordAsync(ForgotPasswordRequestDto dto)
@@ -265,6 +320,9 @@ public class AuthServiceImpl : IAuthService
         return (true, "If this email is registered, a reset OTP has been sent.");
     }
 
+    /// <summary>
+    /// Creates and dispatches signup OTP while caching it for short-lived verification.
+    /// </summary>
     private async Task<(bool Success, string Message)> SendSignupOtpInternalAsync(string email)
     {
         var normalizedEmail = email.ToLower();
@@ -365,6 +423,9 @@ public class AuthServiceImpl : IAuthService
     private bool IsTemporaryPhone(string phoneNumber)
         => !string.IsNullOrWhiteSpace(phoneNumber) && phoneNumber.StartsWith("1");
 
+    /// <summary>
+    /// Generates an access token containing user identity and role claims.
+    /// </summary>
     private string GenerateToken(User user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.SecretKey));
@@ -392,6 +453,9 @@ public class AuthServiceImpl : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    /// <summary>
+    /// Resolves the set of token audiences based on configured JWT settings.
+    /// </summary>
     private IEnumerable<string> GetTokenAudiences()
     {
         if (_jwt.Audiences is { Count: > 0 })
@@ -402,6 +466,9 @@ public class AuthServiceImpl : IAuthService
             : [_jwt.Audience];
     }
 
+    /// <summary>
+    /// Builds a complete authentication response including freshly issued tokens.
+    /// </summary>
     private AuthResponseDto BuildAuthResponse(User user)
         => new()
         {
@@ -412,6 +479,9 @@ public class AuthServiceImpl : IAuthService
             PhoneUpdateRequired = IsTemporaryPhone(user.PhoneNumber)
         };
 
+    /// <summary>
+    /// Issues a new refresh token and stores a one-token-per-user cache mapping.
+    /// </summary>
     private string IssueRefreshToken(int userId)
     {
         RevokeUserRefreshToken(userId);
@@ -425,6 +495,9 @@ public class AuthServiceImpl : IAuthService
         return refreshToken;
     }
 
+    /// <summary>
+    /// Revokes the currently active refresh token, if any, for the specified user.
+    /// </summary>
     private void RevokeUserRefreshToken(int userId)
     {
         if (_cache.TryGetValue($"user_refresh_{userId}", out string? existingToken))

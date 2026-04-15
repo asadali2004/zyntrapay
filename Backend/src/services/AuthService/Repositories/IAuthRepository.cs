@@ -2,6 +2,9 @@
 
 namespace AuthService.Repositories;
 
+/// <summary>
+/// Defines persistence operations required by authentication workflows.
+/// </summary>
 public interface IAuthRepository
 {
     Task<User?> GetByEmailAsync(string email);

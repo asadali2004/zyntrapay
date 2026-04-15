@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Repositories;
 
+/// <summary>
+/// Provides Entity Framework Core data access for authentication domain operations.
+/// </summary>
 public class AuthRepository : IAuthRepository
 {
     private readonly AuthDbContext _context;

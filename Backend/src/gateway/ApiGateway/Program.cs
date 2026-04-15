@@ -2,6 +2,7 @@ using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Serilog;
 
+// Configures API Gateway hosting, Ocelot routing, CORS policy, and health endpoint.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>

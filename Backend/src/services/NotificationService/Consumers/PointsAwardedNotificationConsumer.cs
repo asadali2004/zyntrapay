@@ -7,6 +7,9 @@ using NotificationService.Services;
 
 namespace NotificationService.Consumers;
 
+/// <summary>
+/// Consumes points-awarded events and creates in-app reward notifications.
+/// </summary>
 public class PointsAwardedNotificationConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;
@@ -23,6 +26,9 @@ public class PointsAwardedNotificationConsumer : BackgroundService
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>
+    /// Starts RabbitMQ consumption loop with retry behavior on broker unavailability.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -36,7 +42,6 @@ public class PointsAwardedNotificationConsumer : BackgroundService
                 var queueName = RabbitMqQueueConventions.GetQueueName<PointsAwardedEvent>();
 
                 RabbitMqQueueConventions.DeclareQueueWithDeadLetter(channel, queueName);
-
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += async (model, ea) =>
                 {
@@ -80,6 +85,9 @@ public class PointsAwardedNotificationConsumer : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Processes a single points-awarded event by creating an in-app notification.
+    /// </summary>
     public async Task ProcessAsync(PointsAwardedEvent @event)
     {
         using var scope = _scopeFactory.CreateScope();

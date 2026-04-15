@@ -3,6 +3,9 @@ using NotificationService.Models;
 
 namespace NotificationService.Data;
 
+/// <summary>
+/// Entity Framework Core context for notification persistence.
+/// </summary>
 public class NotificationDbContext : DbContext
 {
     public NotificationDbContext(DbContextOptions<NotificationDbContext> options)
@@ -10,6 +13,9 @@ public class NotificationDbContext : DbContext
 
     public DbSet<Notification> Notifications { get; set; }
 
+    /// <summary>
+    /// Configures notification indexes and default values.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Notification>(entity =>

@@ -7,6 +7,9 @@ using NotificationService.Services;
 
 namespace NotificationService.Consumers;
 
+/// <summary>
+/// Consumes wallet transfer events and notifies both sender and receiver channels.
+/// </summary>
 public class WalletTransferNotificationConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;
@@ -23,6 +26,9 @@ public class WalletTransferNotificationConsumer : BackgroundService
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>
+    /// Starts RabbitMQ consumption loop with retry behavior on broker unavailability.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -110,6 +116,9 @@ public class WalletTransferNotificationConsumer : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Processes a single transfer event by notifying sender and receiver.
+    /// </summary>
     public async Task ProcessAsync(WalletTransferCompletedEvent @event)
     {
         using var scope = _scopeFactory.CreateScope();

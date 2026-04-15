@@ -3,6 +3,9 @@ using NotificationService.Models;
 
 namespace NotificationService.Services;
 
+/// <summary>
+/// Defines business operations for notification retrieval, read-status updates, and creation.
+/// </summary>
 public interface INotificationService
 {
     Task<(bool Success, List<NotificationDto>? Data, string Message)> GetAllAsync(int authUserId);

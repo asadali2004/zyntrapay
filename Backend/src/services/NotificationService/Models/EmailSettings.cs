@@ -1,5 +1,8 @@
 ﻿namespace NotificationService.Models;
 
+/// <summary>
+/// Represents SMTP configuration used to deliver outbound notification emails.
+/// </summary>
 public class EmailSettings
 {
     public string Host { get; set; } = string.Empty;

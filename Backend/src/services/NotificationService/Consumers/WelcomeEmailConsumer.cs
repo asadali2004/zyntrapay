@@ -7,6 +7,9 @@ using NotificationService.Services;
 
 namespace NotificationService.Consumers;
 
+/// <summary>
+/// Consumes welcome-email events and sends onboarding emails to newly registered users.
+/// </summary>
 public class WelcomeEmailConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;
@@ -23,6 +26,9 @@ public class WelcomeEmailConsumer : BackgroundService
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>
+    /// Starts RabbitMQ consumption loop with retry behavior on broker unavailability.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -79,6 +85,9 @@ public class WelcomeEmailConsumer : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Processes a single welcome-email event by sending onboarding content.
+    /// </summary>
     public async Task ProcessAsync(WelcomeEmailRequestedEvent @event)
     {
         using var scope = _scopeFactory.CreateScope();

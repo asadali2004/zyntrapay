@@ -3,8 +3,14 @@ using NotificationService.Models;
 
 namespace NotificationService.Extensions;
 
+/// <summary>
+/// Validates required email SMTP configuration options at startup.
+/// </summary>
 public class EmailSettingsValidator : IValidateOptions<EmailSettings>
 {
+    /// <summary>
+    /// Validates email settings and returns collected configuration failures.
+    /// </summary>
     public ValidateOptionsResult Validate(string? name, EmailSettings options)
     {
         var failures = new List<string>();

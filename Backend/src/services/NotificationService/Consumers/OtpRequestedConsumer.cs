@@ -8,6 +8,9 @@ using NotificationService.Services;
 
 namespace NotificationService.Consumers;
 
+/// <summary>
+/// Consumes OTP request events and sends OTP verification emails.
+/// </summary>
 public class OtpRequestedConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;
@@ -24,6 +27,9 @@ public class OtpRequestedConsumer : BackgroundService
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>
+    /// Starts RabbitMQ consumption loop with retry behavior on broker unavailability.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -80,6 +86,9 @@ public class OtpRequestedConsumer : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Processes a single OTP event by sending the OTP email template.
+    /// </summary>
     public async Task ProcessAsync(OtpRequestedEvent @event)
     {
         using var scope = _scopeFactory.CreateScope();

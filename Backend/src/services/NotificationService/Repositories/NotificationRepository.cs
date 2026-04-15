@@ -4,6 +4,9 @@ using NotificationService.Models;
 
 namespace NotificationService.Repositories;
 
+/// <summary>
+/// Provides Entity Framework Core data access for user notifications.
+/// </summary>
 public class NotificationRepository : INotificationRepository
 {
     private readonly NotificationDbContext _context;

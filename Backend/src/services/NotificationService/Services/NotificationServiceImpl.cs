@@ -4,6 +4,9 @@ using NotificationService.Repositories;
 
 namespace NotificationService.Services;
 
+/// <summary>
+/// Implements notification query and lifecycle operations backed by repository persistence.
+/// </summary>
 public class NotificationServiceImpl : INotificationService
 {
     private readonly INotificationRepository _repo;

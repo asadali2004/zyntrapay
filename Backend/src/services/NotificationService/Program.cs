@@ -9,6 +9,7 @@ using NotificationService.Middleware;
 using Serilog;
 using Shared.Events;
 
+// Configures NotificationService hosting, validation, middleware pipeline, and startup migrations.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>

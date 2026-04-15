@@ -11,8 +11,14 @@ using System.Text;
 
 namespace NotificationService.Extensions;
 
+/// <summary>
+/// Provides dependency-injection extension methods for NotificationService infrastructure wiring.
+/// </summary>
 public static class ServiceExtensions
 {
+    /// <summary>
+    /// Registers NotificationService database context and SQL Server provider configuration.
+    /// </summary>
     public static IServiceCollection AddDatabase(
         this IServiceCollection services, IConfiguration config)
     {
@@ -21,6 +27,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers strongly typed email settings from configuration.
+    /// </summary>
     public static IServiceCollection AddEmailSettings(
     this IServiceCollection services, IConfiguration config)
     {
@@ -28,6 +37,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers JWT bearer authentication and token validation rules.
+    /// </summary>
     public static IServiceCollection AddJwtAuthentication(
         this IServiceCollection services, IConfiguration config)
     {
@@ -50,6 +62,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers core notification services, repositories, email sender, and event consumers.
+    /// </summary>
     public static IServiceCollection AddApplicationServices(
         this IServiceCollection services)
     {
@@ -65,6 +80,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers Swagger/OpenAPI metadata and JWT bearer security definition.
+    /// </summary>
     public static IServiceCollection AddSwaggerDocumentation(
         this IServiceCollection services)
     {

@@ -7,6 +7,9 @@ using NotificationService.Services;
 
 namespace NotificationService.Consumers;
 
+/// <summary>
+/// Consumes wallet top-up events and generates in-app and email transaction notifications.
+/// </summary>
 public class WalletTopUpNotificationConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;
@@ -23,6 +26,9 @@ public class WalletTopUpNotificationConsumer : BackgroundService
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>
+    /// Starts RabbitMQ consumption loop with retry behavior on broker unavailability.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -36,7 +42,7 @@ public class WalletTopUpNotificationConsumer : BackgroundService
                 var queueName = RabbitMqQueueConventions.GetQueueName<WalletTopUpCompletedEvent>();
 
                 RabbitMqQueueConventions.DeclareQueueWithDeadLetter(channel, queueName);
-
+                
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += async (model, ea) =>
                 {
@@ -93,6 +99,9 @@ public class WalletTopUpNotificationConsumer : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Processes a single wallet top-up event by creating in-app and optional email notifications.
+    /// </summary>
     public async Task ProcessAsync(WalletTopUpCompletedEvent @event)
     {
         using var scope = _scopeFactory.CreateScope();

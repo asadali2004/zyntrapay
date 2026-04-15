@@ -1,7 +1,13 @@
 ﻿namespace NotificationService.Services;
 
+/// <summary>
+/// Provides reusable HTML email templates for notification events.
+/// </summary>
 public static class EmailTemplates
 {
+    /// <summary>
+    /// Builds the welcome email template for newly registered users.
+    /// </summary>
     public static string WelcomeEmail(string fullName) => $@"
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
             <div style='background-color: #1a1a2e; padding: 20px; text-align: center;'>
@@ -31,6 +37,9 @@ public static class EmailTemplates
             </div>
         </div>";
 
+    /// <summary>
+    /// Builds the OTP email template for email verification and reset flows.
+    /// </summary>
     public static string OtpEmail(string otp) => $@"
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
             <div style='background-color: #1a1a2e; padding: 20px; text-align: center;'>
@@ -56,6 +65,9 @@ public static class EmailTemplates
             </div>
         </div>";
 
+    /// <summary>
+    /// Builds transaction alert email template for wallet credit/debit activity.
+    /// </summary>
     public static string TransactionEmail(string type, decimal amount, decimal balance) => $@"
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
             <div style='background-color: #1a1a2e; padding: 20px; text-align: center;'>
@@ -99,6 +111,9 @@ public static class EmailTemplates
             </div>
         </div>";
 
+    /// <summary>
+    /// Builds KYC status email template for approved/rejected outcomes.
+    /// </summary>
     public static string KycStatusEmail(string status, string? reason = null) => $@"
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
             <div style='background-color: #1a1a2e; padding: 20px; text-align: center;'>

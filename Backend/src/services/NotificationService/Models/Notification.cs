@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NotificationService.Models;
 
+/// <summary>
+/// Represents an in-app notification persisted for a specific authenticated user.
+/// </summary>
 [Table("Notifications")]
 public class Notification
 {

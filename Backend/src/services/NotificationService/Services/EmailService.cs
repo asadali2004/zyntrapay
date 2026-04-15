@@ -6,6 +6,9 @@ using NotificationService.Models;
 
 namespace NotificationService.Services;
 
+/// <summary>
+/// Sends transactional emails using configured SMTP settings.
+/// </summary>
 public class EmailService : IEmailService
 {
     private readonly EmailSettings _settings;

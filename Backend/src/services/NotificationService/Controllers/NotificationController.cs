@@ -7,6 +7,9 @@ using NotificationService.Services;
 
 namespace NotificationService.Controllers;
 
+/// <summary>
+/// Exposes authenticated endpoints for viewing and updating user notifications.
+/// </summary>
 [ApiController]
 [Route("api/notification")]
 [Authorize]
@@ -19,29 +22,15 @@ public class NotificationController : ControllerBase
         _service = service;
     }
 
+    /// <summary>
+    /// Extracts authenticated user id from JWT claims.
+    /// </summary>
     private int GetAuthUserId()
         => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    [HttpGet]
-    [ProducesResponseType(typeof(List<NotificationDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(NotificationErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAll()
-    {
-        var (success, data, message) = await _service.GetAllAsync(GetAuthUserId());
-        if (!success) return NotFound(BuildErrorResponse(message));
-        return Ok(data);
-    }
-
-    [HttpPut("{id}/read")]
-    [ProducesResponseType(typeof(NotificationActionResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(NotificationErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> MarkAsRead(int id)
-    {
-        var (success, message) = await _service.MarkAsReadAsync(GetAuthUserId(), id);
-        if (!success) return NotFound(BuildErrorResponse(message));
-        return Ok(new NotificationActionResponseDto { Message = message });
-    }
-
+    /// <summary>
+    /// Builds a standardized API error payload for notification operations.
+    /// </summary>
     private static NotificationErrorResponseDto BuildErrorResponse(string message)
         => new()
         {
@@ -49,11 +38,50 @@ public class NotificationController : ControllerBase
             ErrorCode = GetErrorCode(message)
         };
 
+    /// <summary>
+    /// Converts service failure messages into stable machine-readable error codes.
+    /// </summary>
     private static string GetErrorCode(string message)
     {
         if (message.Contains("notification not found", StringComparison.OrdinalIgnoreCase))
             return "NOTIFICATION_NOT_FOUND";
 
         return "NOTIFICATION_VALIDATION_FAILED";
+    }
+
+    // ─── Notification Endpoints ───────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns all notifications for the currently authenticated user.
+    /// </summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(List<NotificationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(NotificationErrorResponseDto), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAll()
+    {
+        var authUserId = GetAuthUserId();
+        var (success, data, message) = await _service.GetAllAsync(authUserId);
+
+        if (!success)
+            return BadRequest(BuildErrorResponse(message));
+
+        return Ok(data);
+    }
+
+    /// <summary>
+    /// Marks a specific notification as read for the authenticated user.
+    /// </summary>
+    [HttpPut("{notificationId:int}/read")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(NotificationErrorResponseDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> MarkAsRead(int notificationId)
+    {
+        var authUserId = GetAuthUserId();
+        var (success, message) = await _service.MarkAsReadAsync(authUserId, notificationId);
+
+        if (!success)
+            return NotFound(BuildErrorResponse(message));
+
+        return Ok(new { message });
     }
 }

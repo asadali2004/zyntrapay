@@ -7,6 +7,9 @@ using NotificationService.Services;
 
 namespace NotificationService.Consumers;
 
+/// <summary>
+/// Consumes KYC status change events and creates both in-app and email notifications.
+/// </summary>
 public class KycStatusChangedConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionOptions _rabbitMqOptions;
@@ -23,6 +26,9 @@ public class KycStatusChangedConsumer : BackgroundService
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>
+    /// Starts RabbitMQ consumption loop with retry behavior on broker unavailability.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -94,6 +100,9 @@ public class KycStatusChangedConsumer : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Processes a single KYC status event by creating in-app and optional email notifications.
+    /// </summary>
     public async Task ProcessAsync(KycStatusChangedEvent @event)
     {
         using var scope = _scopeFactory.CreateScope();

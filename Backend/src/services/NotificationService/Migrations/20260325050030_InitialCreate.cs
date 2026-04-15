@@ -5,10 +5,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace NotificationService.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Creates the initial NotificationService schema for persisted in-app notifications.
+    /// </summary>
     public partial class InitialCreate : Migration
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Applies initial notification table, index, and default constraints.
+        /// </summary>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -34,7 +38,9 @@ namespace NotificationService.Migrations
                 column: "AuthUserId");
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reverts initial NotificationService schema objects.
+        /// </summary>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

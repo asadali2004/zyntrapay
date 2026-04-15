@@ -1,5 +1,8 @@
 ﻿namespace Shared.Events;
 
+/// <summary>
+/// Represents a KYC status update event emitted after admin review.
+/// </summary>
 public class KycStatusChangedEvent
 {
     public int AuthUserId { get; set; }

@@ -1,5 +1,8 @@
 ﻿namespace Shared.Events;
 
+/// <summary>
+/// Represents reward points awarded to a user after eligible activity.
+/// </summary>
 public class PointsAwardedEvent
 {
     public int AuthUserId { get; set; }

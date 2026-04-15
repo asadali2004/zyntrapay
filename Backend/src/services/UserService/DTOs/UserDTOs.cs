@@ -2,6 +2,9 @@
 
 namespace UserService.DTOs;
 
+/// <summary>
+/// Carries input required to create a user profile for an authenticated account.
+/// </summary>
 public class CreateProfileDto
 {
     [Required]
@@ -28,6 +31,9 @@ public class CreateProfileDto
     public string PinCode { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents profile data returned to API consumers.
+/// </summary>
 public class ProfileResponseDto
 {
     public int Id { get; set; }
@@ -40,12 +46,18 @@ public class ProfileResponseDto
     public string PinCode { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents lightweight user identity details used by internal consumers.
+/// </summary>
 public class UserIdentityDto
 {
     public int AuthUserId { get; set; }
     public string FullName { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Carries KYC submission input for an authenticated user.
+/// </summary>
 public class SubmitKycDto
 {
     [Required]
@@ -59,6 +71,9 @@ public class SubmitKycDto
     public string DocumentNumber { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents KYC status details returned by user endpoints.
+/// </summary>
 public class KycResponseDto
 {
     public int Id { get; set; }
@@ -70,6 +85,9 @@ public class KycResponseDto
     public DateTime SubmittedAt { get; set; }
 }
 
+/// <summary>
+/// Carries administrator review decision for a KYC submission.
+/// </summary>
 public class ReviewKycDto
 {
     [Required]
@@ -77,11 +95,17 @@ public class ReviewKycDto
     public string? RejectionReason { get; set; }
 }
 
+/// <summary>
+/// Represents a generic successful user-operation response.
+/// </summary>
 public class UserActionResponseDto
 {
     public string Message { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents a standardized error payload for user endpoints.
+/// </summary>
 public class UserErrorResponseDto
 {
     public string Message { get; set; } = string.Empty;

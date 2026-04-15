@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using UserService.DTOs;
@@ -7,6 +6,9 @@ using UserService.Services;
 
 namespace UserService.Controllers;
 
+/// <summary>
+/// Exposes profile and KYC endpoints for authenticated users and administrators.
+/// </summary>
 [ApiController]
 [Route("api/user")]
 [Authorize]
@@ -19,107 +21,15 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    /// <summary>
+    /// Extracts authenticated user id from JWT claims.
+    /// </summary>
     private int GetAuthUserId()
         => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    [HttpPost("profile")]
-    [ProducesResponseType(typeof(UserActionResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateProfile([FromBody] CreateProfileDto dto)
-    {
-        dto.AuthUserId = GetAuthUserId();
-        var (success, message) = await _userService.CreateProfileAsync(dto);
-        if (!success) return BadRequest(BuildErrorResponse(message));
-        return Ok(new UserActionResponseDto { Message = message });
-    }
-
-    [HttpGet("profile")]
-    [ProducesResponseType(typeof(ProfileResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetProfile()
-    {
-        var authUserId = GetAuthUserId();
-        var (success, data, message) = await _userService.GetProfileAsync(authUserId);
-        if (!success) return NotFound(BuildErrorResponse(message));
-        return Ok(data);
-    }
-
-    [HttpGet("identity/{authUserId}")]
-    [ProducesResponseType(typeof(UserIdentityDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetIdentity(int authUserId)
-    {
-        var (success, data, message) = await _userService.GetIdentityAsync(authUserId);
-        if (!success) return NotFound(BuildErrorResponse(message));
-        return Ok(data);
-    }
-
-    [HttpGet("admin/users/{authUserId}/profile")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(ProfileResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetProfileByAuthUserId(int authUserId)
-    {
-        var (success, data, message) = await _userService.GetProfileByAuthUserIdAsync(authUserId);
-        if (!success) return NotFound(BuildErrorResponse(message));
-        return Ok(data);
-    }
-
-    [HttpGet("admin/users/{authUserId}/kyc")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(KycResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetKycByAuthUserId(int authUserId)
-    {
-        var (success, data, message) = await _userService.GetKycByAuthUserIdAsync(authUserId);
-        if (!success) return NotFound(BuildErrorResponse(message));
-        return Ok(data);
-    }
-
-    [HttpPost("kyc")]
-    [ProducesResponseType(typeof(UserActionResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SubmitKyc([FromBody] SubmitKycDto dto)
-    {
-        dto.AuthUserId = GetAuthUserId();
-        var (success, message) = await _userService.SubmitKycAsync(dto);
-        if (!success) return BadRequest(BuildErrorResponse(message));
-        return Ok(new UserActionResponseDto { Message = message });
-    }
-
-    [HttpGet("kyc")]
-    [ProducesResponseType(typeof(KycResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetKycStatus()
-    {
-        var authUserId = GetAuthUserId();
-        var (success, data, message) = await _userService.GetKycStatusAsync(authUserId);
-        if (!success) return NotFound(BuildErrorResponse(message));
-        return Ok(data);
-    }
-
-    [HttpGet("admin/kyc/pending")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(List<KycResponseDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetPendingKycs()
-    {
-        var (success, data, message) = await _userService.GetPendingKycsAsync();
-        if (!success) return BadRequest(BuildErrorResponse(message));
-        return Ok(data);
-    }
-
-    [HttpPut("admin/kyc/{kycId}/review")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(UserActionResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UserErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ReviewKyc(int kycId, [FromBody] ReviewKycDto dto)
-    {
-        var (success, message) = await _userService.ReviewKycAsync(kycId, dto);
-        if (!success) return BadRequest(BuildErrorResponse(message));
-        return Ok(new UserActionResponseDto { Message = message });
-    }
-
+    /// <summary>
+    /// Builds a standardized API error payload for user operations.
+    /// </summary>
     private static UserErrorResponseDto BuildErrorResponse(string message)
         => new()
         {
@@ -127,6 +37,9 @@ public class UserController : ControllerBase
             ErrorCode = GetErrorCode(message)
         };
 
+    /// <summary>
+    /// Converts service failure messages into stable machine-readable error codes.
+    /// </summary>
     private static string GetErrorCode(string message)
     {
         if (message.Contains("profile already exists", StringComparison.OrdinalIgnoreCase))
@@ -155,5 +68,117 @@ public class UserController : ControllerBase
             return "KYC_ALREADY_REVIEWED";
 
         return "USER_VALIDATION_FAILED";
+    }
+
+    // ─── Profile Endpoints ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the profile of the currently authenticated user.
+    /// </summary>
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var authUserId = GetAuthUserId();
+        var (success, data, message) = await _userService.GetProfileAsync(authUserId);
+
+        if (!success)
+            return NotFound(BuildErrorResponse(message));
+
+        return Ok(data);
+    }
+
+    /// <summary>
+    /// Creates a profile for the currently authenticated user.
+    /// </summary>
+    [HttpPost("profile")]
+    public async Task<IActionResult> CreateProfile([FromBody] CreateProfileDto dto)
+    {
+        dto.AuthUserId = GetAuthUserId();
+        var (success, message) = await _userService.CreateProfileAsync(dto);
+
+        if (!success)
+            return BadRequest(BuildErrorResponse(message));
+
+        return Ok(new UserActionResponseDto { Message = message });
+    }
+
+    /// <summary>
+    /// Returns lightweight identity info (name) for the authenticated user.
+    /// Used internally by other services.
+    /// </summary>
+    [HttpGet("identity")]
+    public async Task<IActionResult> GetIdentity()
+    {
+        var authUserId = GetAuthUserId();
+        var (success, data, message) = await _userService.GetIdentityAsync(authUserId);
+
+        if (!success)
+            return NotFound(BuildErrorResponse(message));
+
+        return Ok(data);
+    }
+
+    // ─── KYC Endpoints ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Submits KYC documents for the currently authenticated user.
+    /// </summary>
+    [HttpPost("kyc")]
+    public async Task<IActionResult> SubmitKyc([FromBody] SubmitKycDto dto)
+    {
+        dto.AuthUserId = GetAuthUserId();
+        var (success, message) = await _userService.SubmitKycAsync(dto);
+
+        if (!success)
+            return BadRequest(BuildErrorResponse(message));
+
+        return Ok(new UserActionResponseDto { Message = message });
+    }
+
+    /// <summary>
+    /// Returns the KYC status of the currently authenticated user.
+    /// </summary>
+    [HttpGet("kyc")]
+    public async Task<IActionResult> GetKycStatus()
+    {
+        var authUserId = GetAuthUserId();
+        var (success, data, message) = await _userService.GetKycStatusAsync(authUserId);
+
+        if (!success)
+            return NotFound(BuildErrorResponse(message));
+
+        return Ok(data);
+    }
+
+    // ─── Admin Endpoints ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns all pending KYC submissions. Admin only.
+    /// </summary>
+    [HttpGet("kyc/pending")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetPendingKycs()
+    {
+        var (success, data, message) = await _userService.GetPendingKycsAsync();
+
+        if (!success)
+            return BadRequest(BuildErrorResponse(message));
+
+        return Ok(data);
+    }
+
+    /// <summary>
+    /// Reviews (approves or rejects) a KYC submission. Admin only.
+    /// </summary>
+    [HttpPut("kyc/{kycId}/review")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ReviewKyc(int kycId, [FromBody] ReviewKycDto dto)
+    {
+        var (success, message) = await _userService.ReviewKycAsync(kycId, dto);
+
+        if (!success)
+            return BadRequest(BuildErrorResponse(message));
+
+        return Ok(new UserActionResponseDto { Message = message });
     }
 }

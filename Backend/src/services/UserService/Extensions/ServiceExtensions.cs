@@ -9,8 +9,14 @@ using System.Text;
 
 namespace UserService.Extensions;
 
+/// <summary>
+/// Provides dependency-injection extension methods for UserService infrastructure wiring.
+/// </summary>
 public static class ServiceExtensions
 {
+    /// <summary>
+    /// Registers UserService database context and SQL Server provider configuration.
+    /// </summary>
     public static IServiceCollection AddDatabase(
         this IServiceCollection services, IConfiguration config)
     {
@@ -19,6 +25,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers JWT bearer authentication and token validation rules.
+    /// </summary>
     public static IServiceCollection AddJwtAuthentication(
         this IServiceCollection services, IConfiguration config)
     {
@@ -41,6 +50,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers core application services and repositories.
+    /// </summary>
     public static IServiceCollection AddApplicationServices(
         this IServiceCollection services)
     {
@@ -49,6 +61,9 @@ public static class ServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers Swagger/OpenAPI metadata and JWT bearer security definition.
+    /// </summary>
     public static IServiceCollection AddSwaggerDocumentation(
         this IServiceCollection services)
     {

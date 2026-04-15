@@ -4,6 +4,9 @@ using UserService.Models;
 
 namespace UserService.Repositories;
 
+/// <summary>
+/// Provides Entity Framework Core data access for user and KYC records.
+/// </summary>
 public class UserRepository : IUserRepository
 {
     private readonly UserDbContext _context;

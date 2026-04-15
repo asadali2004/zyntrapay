@@ -3,6 +3,9 @@ using UserService.Models;
 
 namespace UserService.Data;
 
+/// <summary>
+/// Entity Framework Core context for user profiles and KYC submissions.
+/// </summary>
 public class UserDbContext : DbContext
 {
     public UserDbContext(DbContextOptions<UserDbContext> options)
@@ -11,6 +14,9 @@ public class UserDbContext : DbContext
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<KycSubmission> KycSubmissions { get; set; }
 
+    /// <summary>
+    /// Configures indexes and default values for user-related entities.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserProfile>(entity =>

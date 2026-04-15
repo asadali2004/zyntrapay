@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserService.Models;
 
+/// <summary>
+/// Represents a KYC document submission and its review lifecycle state.
+/// </summary>
 [Table("KycSubmissions")]
 public class KycSubmission
 {

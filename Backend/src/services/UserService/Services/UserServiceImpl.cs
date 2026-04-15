@@ -4,6 +4,9 @@ using UserService.Repositories;
 
 namespace UserService.Services;
 
+/// <summary>
+/// Implements user profile creation, retrieval, KYC submission, and admin review workflows.
+/// </summary>
 public class UserServiceImpl : IUserService
 {
     private readonly IUserRepository _repo;

@@ -5,6 +5,7 @@ using UserService.Data;
 using UserService.Extensions;
 using UserService.Middleware;
 
+// Configures UserService hosting, dependency injection, middleware pipeline, and startup migrations.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>

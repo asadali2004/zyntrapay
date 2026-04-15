@@ -2,6 +2,9 @@
 
 namespace UserService.Repositories;
 
+/// <summary>
+/// Defines persistence operations for user profile and KYC entities.
+/// </summary>
 public interface IUserRepository
 {
     Task<UserProfile?> GetProfileByAuthUserIdAsync(int authUserId);

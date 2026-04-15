@@ -2,6 +2,9 @@
 
 namespace UserService.Services;
 
+/// <summary>
+/// Defines business operations for user profile and KYC lifecycle management.
+/// </summary>
 public interface IUserService
 {
     Task<(bool Success, string Message)> CreateProfileAsync(CreateProfileDto dto);

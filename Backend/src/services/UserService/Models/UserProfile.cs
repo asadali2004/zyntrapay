@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserService.Models;
 
+/// <summary>
+/// Represents a persisted personal profile linked to an authentication user id.
+/// </summary>
 [Table("UserProfiles")]
 public class UserProfile
 {
